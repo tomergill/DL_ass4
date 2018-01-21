@@ -3,7 +3,7 @@ import numpy as np
 
 
 class GumbelSoftmaxTreeLSTM:
-    def __init__(self, D_h, D_x, D_c):
+    def __init__(self, D_h, D_x, D_c, temperatue=1.0):
         pc = dy.ParameterCollection()
         self.__pc = pc
         self.__D_h = D_h
@@ -15,6 +15,9 @@ class GumbelSoftmaxTreeLSTM:
 
         self.__W_leaf = pc.add_parameters((2 * D_h, D_x))
         self.__b_leaf = pc.add_parameters(2 * D_h)
+
+        self.__query_vec = pc.add_parameters(D_h)
+        self.__temperatue = temperatue
         pass
 
     def __represent_parent(self, left, right):
@@ -40,7 +43,15 @@ class GumbelSoftmaxTreeLSTM:
     def __parents_of_layer(self, layer):
         return [self.__represent_parent(layer[i], layer[i + 1]) for i in range(len(layer) - 1)]
 
-    def __call__(self, inputs):
+    @staticmethod
+    def gumbell_softmax(pis, temperatue=1.0):
+        u = dy.random_uniform(pis.dim()[0], 0.0, 1.0)
+        g = -dy.log(-dy.log(u))
+        y = dy.exp(dy.(dy.log(pis) + g) / temperatue)
+        y = dy.cdiv(y, dy.esum(y))
+        return y
+
+    def __call__(self, inputs, test=False):
         # todo inputs to vectors sized D_x
         inputs = inputs
         D_h = self.__D_h
@@ -50,6 +61,15 @@ class GumbelSoftmaxTreeLSTM:
         layer = [W_leaf * x + b_leaf for x in inputs]
         layer = [(hc[0:D_h], hc[D_h:2*D_h]) for hc in layer]
 
+        q = dy.parameter(self.__query_vec)
         while len(layer) > 1:
-            pass
+            parents = self.__parents_of_layer(layer)
+            parents_scores = map(lambda (h, c): dy.dot_product(h, q), parents)
+            score_sum = dy.esum(parents_scores)
+            parents_scores = dy.cdiv(parents_scores, score_sum)
+            if test:
+                best_parent = dy.emax(parents_scores)
+            else:
+                y = self.gumbell_softmax(dy.concatenate_cols(parents_scores), self.__temperatue)
+                # todo y_st and argmax
         pass
