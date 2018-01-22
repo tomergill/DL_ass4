@@ -127,8 +127,8 @@ class GumbelSoftmaxTreeLSTM:
 
 class SNLIGumbelSoftmaxTreeLSTM:
     def __init__(self, D_h, D_x, D_c, mlp_hidden_layer_size, mlp_hidden_layers=1, temperatue=1.0, use_leaf_lstm=False,
-                 lstm_layers=1,use_bilsm=False):
-        self.__treeLSTM = GumbelSoftmaxTreeLSTM(D_h, D_x, temperatue, use_leaf_lstm, lstm_layers, use_bilsm)
+                 lstm_layers=1, use_bilstm=False):
+        self.__treeLSTM = GumbelSoftmaxTreeLSTM(D_h, D_x, temperatue, use_leaf_lstm, lstm_layers, use_bilstm)
         self.__D_c = D_c
         pc = self.__treeLSTM.pc
         self.ENTAILMENT, self.CONTRADICTION, self.NEUTRAL = 0, 1, 2
@@ -144,6 +144,9 @@ class SNLIGumbelSoftmaxTreeLSTM:
         # last hidden layer to output:
         self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, D_c)),  pc.add_parameters(mlp_hidden_layer_size))]
         self.__mlp_activation = dy.rectify  # ReLu
+
+    def get_parameter_collection(self):
+        return self.__treeLSTM.pc
 
     def __apply_mlp(self, f):
         g = self.__mlp_activation
@@ -184,4 +187,4 @@ class SNLIGumbelSoftmaxTreeLSTM:
         return -dy.log(probs[expected])
 
     def predict(self, premise, hypothesis):
-        return self(premise, hypothesis).npvalue().argmax()
+        return self(premise, hypothesis, test=True).npvalue().argmax()
