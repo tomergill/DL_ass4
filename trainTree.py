@@ -121,6 +121,19 @@ def main():
                                       use_bilstm=use_leaf_bilstm)
     trainer = dy.AdamTrainer(model.get_parameter_collection())
     TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model), dataset_to_numerical_data(dev_set, W2NV, model)
+
+    print "##################################################"
+    print "#\tWords in GloVe vocab: {}".format(len(W2NV))
+    print "#\tGloVe embedded vectors dimension (D_x): {}".format(D_x)
+    print "#\tHidden Dimension (D_h): {}".format(D_h)
+    print "#\tD_c: {}".format(D_c)
+    print "#\tMLP hidden dimension: {}".format(mlp_hid_dim)
+    print "#\tDropout probability: {}".format(dropout_probability)
+    print "#\tEpochs: {}".format(epochs)
+    print "#\tTrain set size: {}".format(len(TRAIN))
+    print "#\tDev set size: {}".format(len(DEV))
+    print "##################################################\n"
+
     write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
 
     output_file = open("log.csv", "w")
