@@ -10,16 +10,11 @@ UNKNOWN = "UNK"
 
 def read_glove(file_name):
     W2NV = {}
-    first = True
     for line in file(file_name):
         line = line.split()
-        if first:
-            D_x = len(line) - 1
-            first = False
-        word = line[0]
-        vec = np.array(line[1:]).astype(float)
-        W2NV[word] = vec
-    return W2NV, D_x
+        word = line.pop()
+        W2NV[word] = np.array(map(float, line))
+    return W2NV
 
 
 def read_snli_data_file(file_name):
@@ -63,7 +58,7 @@ def accuracy_on(model, data):
     return good / len(data)
 
 
-def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=500):
+def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50):  # should be 50000
     """
 
     :type model: SNLIGumbelSoftmaxTreeLSTM
@@ -110,9 +105,15 @@ def main():
                 use_leaf_lstm = True
                 use_leaf_bilstm = True
 
+    print "Starting reading GloVe file..."
+    start = time()
     W2NV, D_x = read_glove(glove_file)
+    print "Finished reading GloVe in {} seconds.\nStarting reading SNLI data sets...".format(time() - start)
+    
+    start = time()
     train_set = read_snli_data_file(files_name.format("train"))
     dev_set = read_snli_data_file(files_name.format("dev")) + read_snli_data_file(files_name.format("test"))
+    print "Finished reading SNLI data sets in {} seconds.".format(time() - start)
 
     # parameters
     D_h = 300
