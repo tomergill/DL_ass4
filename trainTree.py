@@ -4,6 +4,7 @@ import dynet as dy
 import numpy as np
 from sys import argv
 from GumbellSoftmaxTreeLSTM import SNLIGumbelSoftmaxTreeLSTM
+from random import shuffle
 
 UNKNOWN = "UNK"
 
@@ -51,6 +52,7 @@ def accuracy_on(model, data):
     :return:
     """
     good = 0.0
+    shuffle(data)
     for sen1, sen2, tag in data:
         prediction = model.predict(sen1, sen2)
         if prediction == tag:
@@ -75,6 +77,7 @@ def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=
     print "| Epoch | Average_Loss | Total_Time | Dev_Accuracy |"
     print "+-------+--------------+------------+--------------+"
     for i in xrange(epochs):
+        shuffle(data)
         total_loss = 0.0
         start_time = time()
         for j, (pre, hyp, tag) in enumerate(data):
@@ -113,7 +116,7 @@ def main():
     
     start = time()
     train_set = read_snli_data_file(files_name.format("train"))
-    dev_set = read_snli_data_file(files_name.format("dev")) + read_snli_data_file(files_name.format("test"))
+    dev_set = read_snli_data_file(files_name.format("dev"))  # + read_snli_data_file(files_name.format("test"))
     print "Finished reading SNLI data sets in {} seconds.".format(time() - start)
 
     # parameters
