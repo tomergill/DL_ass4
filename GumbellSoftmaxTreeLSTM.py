@@ -61,9 +61,6 @@ class GumbelSoftmaxTreeLSTM:
     def __call__(self, inputs, test=False, renew_cg=True):
         if renew_cg:
             dy.renew_cg()
-
-        # todo inputs to vectors sized D_x
-        inputs = inputs
         D_h = self.__D_h
 
         # make the first layer: turn each word vector (sized D_x) to a 2 D_h vectors (h, c)
@@ -160,9 +157,11 @@ class SNLIGumbelSoftmaxTreeLSTM:
     def __call__(self, premise, hypothesis, test=False, use_dropout=False, dropout_prob=0.1):
         dy.renew_cg()
 
+        premise = [dy.inputTensor(v) for v in premise]
+        hypothesis = [dy.inputTensor(v) for v in hypothesis]
         if use_dropout:  # dropout sentences
-            premise = [dy.dropout(dy.inputTensor(v), dropout_prob) for v in premise]
-            hypothesis = [dy.dropout(dy.inputTensor(v), dropout_prob) for v in hypothesis]
+            premise = [dy.dropout(v, dropout_prob) for v in premise]
+            hypothesis = [dy.dropout(v, dropout_prob) for v in hypothesis]
 
         h_pre, c_pre = self.__treeLSTM(premise, renew_cg=False, test=test)
         h_hyp, c_hyp = self.__treeLSTM(hypothesis, renew_cg=False, test=test)
