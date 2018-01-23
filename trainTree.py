@@ -1,4 +1,5 @@
 import json
+from time import time
 import dynet as dy
 import numpy as np
 from sys import argv
@@ -58,8 +59,37 @@ def accuracy_on(model, data):
     return good / len(data)
 
 
-def train_on(model, data, dev_data, epochs, dropout_p=0.0):
+def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=500):
+    """
+
+    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :param model:
+    :param data:
+    :param dev_data:
+    :param epochs:
+    :param dropout_p:
+    :return:
+    """
     use_dropout = dropout_p > 0.0
+    write_to_file = ["epoch,average_loss,total_time,dev_accuracy"]
+    print "+-------+------------+------------+----------------+"
+    print "| Epoch | Average_Loss | Total_Time | Dev_Accuracy |"
+    print "+-------+------------+------------+----------------+"
+    for i in xrange(epochs):
+        total_loss = 0.0
+        start_time = time()
+        for j, (pre, hyp, tag) in enumerate(data):
+            loss = model.loss_on(pre, hyp, tag, use_dropout, dropout_p)
+            total_loss += loss.value()
+            loss.backward()
+            trainer.update()
+
+            if j % print_every == print_every - 1:
+                acc = accuracy_on(model, dev_data)
+                write_to_file.append("{},{},{},{}".format(epochs, total_loss, time() - start_time, acc))
+                print "| {:>5} | {:12} | {:8} s | {:10} % |".format(epochs, total_loss, time() - start_time, acc * 100)
+                print "+-------+------------+------------+----------------+"
+    return write_to_file
 
 
 def main():
@@ -78,20 +108,24 @@ def main():
 
     W2NV, D_x = read_glove(glove_file)
     train_set = read_snli_data_file(files_name.format("train"))
-    dev_set = read_snli_data_file(files_name.format("dev"))
+    dev_set = read_snli_data_file(files_name.format("dev")) + read_snli_data_file(files_name.format("test"))
 
     # parameters
     D_h = 300
     D_c = 1024
     mlp_hid_dim = D_c
     dropout_probability = 0.1
+    epochs = 1
 
     model = SNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
                                       use_bilstm=use_leaf_bilstm)
     trainer = dy.AdamTrainer(model.get_parameter_collection())
     TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model), dataset_to_numerical_data(dev_set, W2NV, model)
+    write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
 
-    pass
+    output_file = open("log.csv", "w")
+    for line in write_to_file:
+        output_file.write(line + "\n")
 
 
 if __name__ == '__main__':
