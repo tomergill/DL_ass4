@@ -12,7 +12,7 @@ def read_glove(file_name):
     W2NV = {}
     for line in file(file_name):
         line = line.split()
-        word = line.pop()
+        word = line.pop(0)
         W2NV[word] = np.array(map(float, line))
     return W2NV
 
