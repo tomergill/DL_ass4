@@ -132,6 +132,7 @@ def main():
     print "#\tEpochs: {}".format(epochs)
     print "#\tTrain set size: {}".format(len(TRAIN))
     print "#\tDev set size: {}".format(len(DEV))
+    print "#\tLeaf encoding: {}".format(("BiLSTM" if use_leaf_bilstm else "LSTM") if use_leaf_lstm else "Linear Layer")
     print "##################################################\n"
 
     write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
