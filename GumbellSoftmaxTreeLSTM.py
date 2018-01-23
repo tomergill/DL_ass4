@@ -55,7 +55,7 @@ class GumbelSoftmaxTreeLSTM:
         u = dy.random_uniform(pis.dim()[0], 0.0, 1.0)
         g = -dy.log(-dy.log(u))
         y = dy.exp((dy.log(pis) + g) / temperatue)
-        y = dy.cdiv(y, dy.esum(y))
+        y = dy.cdiv(y, dy.sum_elems(y))
         return y
 
     def __call__(self, inputs, test=False, renew_cg=True):
@@ -114,12 +114,11 @@ class GumbelSoftmaxTreeLSTM:
             else:
                 y = parents_scores
 
-            dy.forward(y)
             y = y.npvalue()
             # y_st = np.zeros(y.shape)
             # y_st[y.argmax()] = 1.0
             y = y.argmax()
-            layer = layer[:y] + parents[y] + layer[y+2:]
+            layer = layer[:y] + [parents[y]] + layer[y+2:]
 
         # todo check if this is really what should be returned
         return layer[0]
@@ -137,12 +136,12 @@ class SNLIGumbelSoftmaxTreeLSTM:
 
         # creates an mlp with n (n = {mlp_hidden_layers}) hidden layers and an input layer
         # input layer:
-        self.__mlp = [(pc.add_parameters((4*D_h, mlp_hidden_layer_size)), pc.add_parameters(mlp_hidden_layer_size))]
+        self.__mlp = [(pc.add_parameters((mlp_hidden_layer_size, 4*D_h)), pc.add_parameters(mlp_hidden_layer_size))]
         # n - 1 hidden layers:
         self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, mlp_hidden_layer_size)),
                         pc.add_parameters(mlp_hidden_layer_size)) for _ in xrange(mlp_hidden_layers - 1)]
         # last hidden layer to output:
-        self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, D_c)),  pc.add_parameters(mlp_hidden_layer_size))]
+        self.__mlp += [(pc.add_parameters((D_c, mlp_hidden_layer_size)),  pc.add_parameters(mlp_hidden_layer_size))]
         self.__mlp_activation = dy.rectify  # ReLu
 
     def get_parameter_collection(self):
@@ -162,8 +161,8 @@ class SNLIGumbelSoftmaxTreeLSTM:
         dy.renew_cg()
 
         if use_dropout:  # dropout sentences
-            premise = dy.dropout(premise, dropout_prob)
-            hypothesis = dy.dropout(hypothesis, dropout_prob)
+            premise = [dy.dropout(dy.inputTensor(v), dropout_prob) for v in premise]
+            hypothesis = [dy.dropout(dy.inputTensor(v), dropout_prob) for v in hypothesis]
 
         h_pre, c_pre = self.__treeLSTM(premise, renew_cg=False, test=test)
         h_hyp, c_hyp = self.__treeLSTM(hypothesis, renew_cg=False, test=test)

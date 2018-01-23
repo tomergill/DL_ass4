@@ -5,15 +5,17 @@ import numpy as np
 from sys import argv
 from GumbellSoftmaxTreeLSTM import SNLIGumbelSoftmaxTreeLSTM
 
+UNKNOWN = "UNK"
+
 
 def read_glove(file_name):
     W2NV = {}
     first = True
     for line in file(file_name):
+        line = line.split()
         if first:
             D_x = len(line) - 1
             first = False
-        line = line.split()
         word = line[0]
         vec = np.array(line[1:]).astype(float)
         W2NV[word] = vec
@@ -24,9 +26,9 @@ def read_snli_data_file(file_name):
     sentences_and_tags = []
     for line in file(file_name):
         js = json.loads(line[:-1])
-        if js["golden_tag"] == "-":
+        if js["gold_label"] == "-":
             continue
-        sentences_and_tags.append((js["sentence1"], js["sentence2"], js["golden_tag"]))
+        sentences_and_tags.append((js["sentence1"], js["sentence2"], js["gold_label"]))
     return sentences_and_tags
 
 
@@ -40,7 +42,9 @@ def dataset_to_numerical_data(sentences_and_tags, W2NV, model):
     :return:
     """
     T2I = {"entailment": model.ENTAILMENT, "neutral": model.NEUTRAL, "contradiction": model.CONTRADICTION}
-    return [([W2NV[w] for w in sen1], [W2NV[w] for w in sen2], T2I[tag]) for sen1, sen2, tag in sentences_and_tags]
+    return [([W2NV[w] if w in W2NV else W2NV[UNKNOWN] for w in sen1],
+             [W2NV[w] if w in W2NV else W2NV[UNKNOWN] for w in sen2],
+             T2I[tag]) for sen1, sen2, tag in sentences_and_tags]
 
 
 def accuracy_on(model, data):
@@ -72,9 +76,9 @@ def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=
     """
     use_dropout = dropout_p > 0.0
     write_to_file = ["epoch,average_loss,total_time,dev_accuracy"]
-    print "+-------+------------+------------+----------------+"
+    print "+-------+--------------+------------+--------------+"
     print "| Epoch | Average_Loss | Total_Time | Dev_Accuracy |"
-    print "+-------+------------+------------+----------------+"
+    print "+-------+--------------+------------+--------------+"
     for i in xrange(epochs):
         total_loss = 0.0
         start_time = time()
@@ -88,7 +92,7 @@ def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=
                 acc = accuracy_on(model, dev_data)
                 write_to_file.append("{},{},{},{}".format(epochs, total_loss, time() - start_time, acc))
                 print "| {:>5} | {:12} | {:8} s | {:10} % |".format(epochs, total_loss, time() - start_time, acc * 100)
-                print "+-------+------------+------------+----------------+"
+                print "+-------+--------------+------------+--------------+"
     return write_to_file
 
 
