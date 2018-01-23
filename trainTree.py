@@ -107,7 +107,8 @@ def main():
 
     print "Starting reading GloVe file..."
     start = time()
-    W2NV, D_x = read_glove(glove_file)
+    W2NV = read_glove(glove_file)
+    D_x = W2NV[","].shape[0] if len(W2NV[","].shape[0]) == 1 els W2NV[","].shape[1]
     print "Finished reading GloVe in {} seconds.\nStarting reading SNLI data sets...".format(time() - start)
     
     start = time()
