@@ -60,7 +60,7 @@ def accuracy_on(model, data):
     return good / len(data)
 
 
-def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50):  # should be 50000
+def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50000):
     """
 
     :type model: SNLIGumbelSoftmaxTreeLSTM
