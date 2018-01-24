@@ -3,7 +3,7 @@ from time import time
 import dynet as dy
 import numpy as np
 from sys import argv
-from GumbellSoftmaxTreeLSTM import SNLIGumbelSoftmaxTreeLSTM
+from GumbellSoftmaxTreeLSTM import SimpleSNLIGumbelSoftmaxTreeLSTM
 from random import shuffle
 
 UNKNOWN = "UNK"
@@ -33,7 +33,7 @@ def dataset_to_numerical_data(sentences_and_tags, W2NV, model):
 
     :param sentences_and_tags:
     :param W2NV:
-    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
     :param model:
     :return:
     """
@@ -46,7 +46,7 @@ def dataset_to_numerical_data(sentences_and_tags, W2NV, model):
 def accuracy_on(model, data):
     """
 
-    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
     :param model:
     :param data:
     :return:
@@ -63,7 +63,7 @@ def accuracy_on(model, data):
 def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50000):
     """
 
-    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
     :param model:
     :param data:
     :param dev_data:
@@ -126,8 +126,8 @@ def main():
     dropout_probability = 0.1
     epochs = 1
 
-    model = SNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
-                                      use_bilstm=use_leaf_bilstm)
+    model = SimpleSNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
+                                            use_bilstm=use_leaf_bilstm)
     trainer = dy.AdamTrainer(model.get_parameter_collection())
     TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model), dataset_to_numerical_data(dev_set, W2NV, model)
 
