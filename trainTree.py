@@ -149,6 +149,7 @@ def main():
     output_file = open("log.csv", "w")
     for line in write_to_file:
         output_file.write(line + "\n")
+    output_file.close()
 
 
 if __name__ == '__main__':
