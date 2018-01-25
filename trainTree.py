@@ -107,7 +107,7 @@ def accuracy_on_batch(model, data, batch_size=128):
     for i in xrange(0, len(data), batch_size):
         mini_batch = data[i:i + batch_size]
         premises, hypotheses, tags = zip(*mini_batch)
-        # premises, hypotheses, tags = list(premises), list(hypotheses), list(tags)
+        premises, hypotheses, tags = list(premises), list(hypotheses), list(tags)
         batch_preds = model.predict_batch(premises, hypotheses)
         good += reduce(lambda total, (pred, expected): total + (1.0 if pred == expected else 0.0),
                        zip(batch_preds, tags), initializer=0.0)
@@ -142,6 +142,7 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
         for j in xrange(0, len(data), batch_size):
             mini_batch = data[j:j + batch_size]
             premises, hypotheses, tags = zip(*mini_batch)
+            premises, hypotheses, tags = list(premises), list(hypotheses), list(tags)
             batch_losses = model.loss_on_batch(premises, hypotheses, tags, use_dropout, dropout_p)
             loss = dy.esum(batch_losses)
             total_loss += loss.value()
