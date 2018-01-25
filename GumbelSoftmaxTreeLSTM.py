@@ -252,7 +252,7 @@ class GumbelSoftmaxTreeLSTM:
         hs, cs = dy.select_rows(layer, range(d / 2)), dy.select_rows(layer, range(d / 2, d))
         lefts = (dy.select_cols(hs, range(n - 1)), dy.select_cols(cs, range(n - 1)))
         rights = (dy.select_cols(hs, range(1, n)), dy.select_cols(cs, range(1, n)))
-        return dy.transpose(dy.concatenate(self.__represent_parent(rights, lefts)))  # it was _cols
+        return dy.concatenate(self.__represent_parent(rights, lefts))  # it was _cols
 
     @staticmethod
     def gumbel_softmax(pis, temperatue=1.0):
