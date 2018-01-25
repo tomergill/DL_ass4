@@ -204,6 +204,9 @@ class GumbelSoftmaxTreeLSTM:
         """
         epsilon = 1e-20
         q = dy.parameter(self.__query_vec)  # query vector
+        print "__y_st_before_argmax"
+        print "parents: {}".format(parents.dim())
+        print "q: {}".format(q.dim())
         hs = dy.select_rows(parents, range(self.__D_h))
         u = dy.random_uniform((1, hs.dim()[0][1]), 0, 1)
         g = -dy.log(-dy.log(u + epsilon) + epsilon)
@@ -211,6 +214,9 @@ class GumbelSoftmaxTreeLSTM:
 
     def __parents_scores(self, parents):
         q = dy.parameter(self.__query_vec)  # query vector
+        print "__parents_scores"
+        print "parents: {}".format(parents.dim())
+        print "q: {}".format(q.dim())
         hs = dy.select_rows(parents, range(self.__D_h))
         return dy.concatenate([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])])
 
