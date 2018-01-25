@@ -274,7 +274,7 @@ class GumbelSoftmaxTreeLSTM:
                     sen.append(dy.concatenate(h, c))
                 layer.append(sen)
 
-        max_len = max(map(len, layer))
+        max_len = max(map(lambda hc: hc.dim()[0][1], layer))
         single_zreo = np.array([0])
         while max_len > 1:
             batch_parents = []
@@ -334,7 +334,7 @@ class GumbelSoftmaxTreeLSTM:
                 new_layer.append(new_r)  # the new representation of the sentence
 
             layer = new_layer
-            max_len = max(map(len, layer))  # checking if all our sentences are one node
+            max_len = max(map(lambda hc: hc.dim()[0][1], layer))  # checking if all our sentences are one node
         # end of while
 
         return layer
