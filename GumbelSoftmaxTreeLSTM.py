@@ -121,6 +121,78 @@ class SimpleGumbelSoftmaxTreeLSTM:
         return layer[0]
 
 
+class SimpleSNLIGumbelSoftmaxTreeLSTM:
+    def __init__(self, D_h, D_x, D_c, mlp_hidden_layer_size, mlp_hidden_layers=1, temperatue=1.0, use_leaf_lstm=False,
+                 lstm_layers=1, use_bilstm=False):
+        self.__treeLSTM = SimpleGumbelSoftmaxTreeLSTM(D_h, D_x, temperatue, use_leaf_lstm, lstm_layers, use_bilstm)
+        self.__D_c = D_c
+        pc = self.__treeLSTM.pc
+        self.ENTAILMENT, self.CONTRADICTION, self.NEUTRAL = 0, 1, 2
+        self.__W_cl_f = [pc.add_parameters((1, D_c)), pc.add_parameters((1, D_c)), pc.add_parameters((1, D_c))]
+        self.__b_cl_f = [pc.add_parameters(1), pc.add_parameters(1), pc.add_parameters(1)]
+
+        # creates an mlp with n (n = {mlp_hidden_layers}) hidden layers and an input layer
+        # input layer:
+        self.__mlp = [(pc.add_parameters((mlp_hidden_layer_size, 4 * D_h)), pc.add_parameters(mlp_hidden_layer_size))]
+        # n - 1 hidden layers:
+        self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, mlp_hidden_layer_size)),
+                        pc.add_parameters(mlp_hidden_layer_size)) for _ in xrange(mlp_hidden_layers - 1)]
+        # last hidden layer to output:
+        self.__mlp += [(pc.add_parameters((D_c, mlp_hidden_layer_size)), pc.add_parameters(mlp_hidden_layer_size))]
+        self.__mlp_activation = dy.rectify  # ReLu
+
+    def get_parameter_collection(self):
+        return self.__treeLSTM.pc
+
+    def __apply_mlp(self, f):
+        g = self.__mlp_activation
+        x = f
+        for pW, pb in self.__mlp[:-1]:
+            W, b = dy.parameter(pW), dy.parameter(pb)
+            x = g(W * x + b)
+        pW, pb = self.__mlp[-1]
+        W, b = dy.parameter(pW), dy.parameter(pb)
+        return W * x + b
+
+    def __call__(self, premise, hypothesis, test=False, use_dropout=False, dropout_prob=0.1):
+        dy.renew_cg()
+
+        premise = [dy.inputTensor(v) for v in premise]
+        hypothesis = [dy.inputTensor(v) for v in hypothesis]
+        if use_dropout:  # dropout sentences
+            premise = [dy.dropout(v, dropout_prob) for v in premise]
+            hypothesis = [dy.dropout(v, dropout_prob) for v in hypothesis]
+
+        h_pre, c_pre = self.__treeLSTM(premise, renew_cg=False, test=test)
+        h_hyp, c_hyp = self.__treeLSTM(hypothesis, renew_cg=False, test=test)
+
+        f = dy.concatenate([h_pre, h_hyp, dy.abs(h_pre - h_pre), dy.cmult(h_pre, h_hyp)])
+        if use_dropout:
+            f = dy.dropout(f, dropout_prob)
+        a = self.__apply_mlp(f)
+        if use_dropout:
+            a = dy.dropout(a, dropout_prob)
+
+        probs = [0, 0, 0]
+        for i in [self.ENTAILMENT, self.CONTRADICTION, self.NEUTRAL]:
+            W, b = dy.parameter(self.__W_cl_f[i]), dy.parameter(self.__b_cl_f[i])
+            probs[i] = W * a + b
+        probs = dy.concatenate(probs)
+        return dy.softmax(probs)
+
+    def loss_on(self, premise, hypothesis, expected, use_dropout=False, dropout_prob=0.1):
+        probs = self(premise, hypothesis, test=False, use_dropout=use_dropout, dropout_prob=dropout_prob)
+        return -dy.log(probs[expected])
+
+    def predict(self, premise, hypothesis):
+        return self(premise, hypothesis, test=True).npvalue().argmax()
+
+
+"######################################################################################################################"
+"################################################ BATCHED CLASSES #####################################################"
+"######################################################################################################################"
+
+
 class GumbelSoftmaxTreeLSTM:
     def __init__(self, D_h, D_x, temperatue=1.0, use_leaf_lstm=False, lstm_layers=1, use_bilsm=False):
         pc = dy.ParameterCollection()
@@ -180,7 +252,7 @@ class GumbelSoftmaxTreeLSTM:
         hs, cs = dy.select_rows(layer, range(d / 2)), dy.select_rows(layer, range(d / 2, d))
         lefts = (dy.select_cols(hs, range(n - 1)), dy.select_cols(cs, range(n - 1)))
         rights = (dy.select_cols(hs, range(1, n)), dy.select_cols(cs, range(1, n)))
-        return dy.transpose(dy.concatenate_cols(self.__represent_parent(rights, lefts)))
+        return dy.transpose(dy.concatenate(self.__represent_parent(rights, lefts)))  # it was _cols
 
     @staticmethod
     def gumbel_softmax(pis, temperatue=1.0):
@@ -344,73 +416,6 @@ class GumbelSoftmaxTreeLSTM:
         # end of while
 
         return layer
-
-
-class SimpleSNLIGumbelSoftmaxTreeLSTM:
-    def __init__(self, D_h, D_x, D_c, mlp_hidden_layer_size, mlp_hidden_layers=1, temperatue=1.0, use_leaf_lstm=False,
-                 lstm_layers=1, use_bilstm=False):
-        self.__treeLSTM = SimpleGumbelSoftmaxTreeLSTM(D_h, D_x, temperatue, use_leaf_lstm, lstm_layers, use_bilstm)
-        self.__D_c = D_c
-        pc = self.__treeLSTM.pc
-        self.ENTAILMENT, self.CONTRADICTION, self.NEUTRAL = 0, 1, 2
-        self.__W_cl_f = [pc.add_parameters((1, D_c)), pc.add_parameters((1, D_c)), pc.add_parameters((1, D_c))]
-        self.__b_cl_f = [pc.add_parameters(1), pc.add_parameters(1), pc.add_parameters(1)]
-
-        # creates an mlp with n (n = {mlp_hidden_layers}) hidden layers and an input layer
-        # input layer:
-        self.__mlp = [(pc.add_parameters((mlp_hidden_layer_size, 4 * D_h)), pc.add_parameters(mlp_hidden_layer_size))]
-        # n - 1 hidden layers:
-        self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, mlp_hidden_layer_size)),
-                        pc.add_parameters(mlp_hidden_layer_size)) for _ in xrange(mlp_hidden_layers - 1)]
-        # last hidden layer to output:
-        self.__mlp += [(pc.add_parameters((D_c, mlp_hidden_layer_size)), pc.add_parameters(mlp_hidden_layer_size))]
-        self.__mlp_activation = dy.rectify  # ReLu
-
-    def get_parameter_collection(self):
-        return self.__treeLSTM.pc
-
-    def __apply_mlp(self, f):
-        g = self.__mlp_activation
-        x = f
-        for pW, pb in self.__mlp[:-1]:
-            W, b = dy.parameter(pW), dy.parameter(pb)
-            x = g(W * x + b)
-        pW, pb = self.__mlp[-1]
-        W, b = dy.parameter(pW), dy.parameter(pb)
-        return W * x + b
-
-    def __call__(self, premise, hypothesis, test=False, use_dropout=False, dropout_prob=0.1):
-        dy.renew_cg()
-
-        premise = [dy.inputTensor(v) for v in premise]
-        hypothesis = [dy.inputTensor(v) for v in hypothesis]
-        if use_dropout:  # dropout sentences
-            premise = [dy.dropout(v, dropout_prob) for v in premise]
-            hypothesis = [dy.dropout(v, dropout_prob) for v in hypothesis]
-
-        h_pre, c_pre = self.__treeLSTM(premise, renew_cg=False, test=test)
-        h_hyp, c_hyp = self.__treeLSTM(hypothesis, renew_cg=False, test=test)
-
-        f = dy.concatenate([h_pre, h_hyp, dy.abs(h_pre - h_pre), dy.cmult(h_pre, h_hyp)])
-        if use_dropout:
-            f = dy.dropout(f, dropout_prob)
-        a = self.__apply_mlp(f)
-        if use_dropout:
-            a = dy.dropout(a, dropout_prob)
-
-        probs = [0, 0, 0]
-        for i in [self.ENTAILMENT, self.CONTRADICTION, self.NEUTRAL]:
-            W, b = dy.parameter(self.__W_cl_f[i]), dy.parameter(self.__b_cl_f[i])
-            probs[i] = W * a + b
-        probs = dy.concatenate(probs)
-        return dy.softmax(probs)
-
-    def loss_on(self, premise, hypothesis, expected, use_dropout=False, dropout_prob=0.1):
-        probs = self(premise, hypothesis, test=False, use_dropout=use_dropout, dropout_prob=dropout_prob)
-        return -dy.log(probs[expected])
-
-    def predict(self, premise, hypothesis):
-        return self(premise, hypothesis, test=True).npvalue().argmax()
 
 
 class SNLIGumbelSoftmaxTreeLSTM:
