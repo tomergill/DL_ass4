@@ -173,7 +173,7 @@ class GumbelSoftmaxTreeLSTM:
         # computing parent data
         c_p = dy.cmult(f_l, c_l) + dy.cmult(f_r, c_r) + dy.cmult(i, g)
         h_p = dy.cmult(o, dy.tanh(c_p))
-        return h_p, c_p
+        return [h_p, c_p]
 
     def __parents_of_layer(self, layer):
         d, n = layer.dim()[0]
