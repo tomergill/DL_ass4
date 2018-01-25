@@ -144,7 +144,7 @@ class GumbelSoftmaxTreeLSTM:
         self.__W_comp = pc.add_parameters((5 * D_h, 2 * D_h))
         self.__b_comp = pc.add_parameters(5 * D_h)  # todo make sure it's 5 and not 2 like in the paper
 
-        self.__query_vec = pc.add_parameters((1, D_h))
+        self.__query_vec = pc.add_parameters((D_h, 1))
         self.__temperatue = temperatue
         pass
 
