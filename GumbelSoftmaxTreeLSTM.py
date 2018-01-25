@@ -306,22 +306,39 @@ class GumbelSoftmaxTreeLSTM:
                 batch_y_st.append(self.__y_st_before_argmax(parents))
             # for's end
 
-            # dy.forward(batch_y)
             dy.forward(batch_y_st)
 
             new_layer = []
             for i, (y, y_st_before) in enumerate(izip(batch_y, batch_y_st)):
+                parents = batch_parents[i]
+                if parents.dim()[0][1] == 1:  # sentence is already one node
+                    new_layer.append(parents)
+
                 y_st_before = y_st_before.npvalue()
                 y_st = np.eye(y_st_before.shape[0])[y_st_before.argmax()]  # one-hot Straight Through (ST) vector
+
+                # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
                 y_hat = dy.nobackprop(dy.inputTensor(y_st) - y) - y
-                cumsum = self.cumsum(y_hat)
+
+                cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
                 m_l = 1 - cumsum
-                m_r = dy.transpose()
+                m_r = dy.transpose(dy.concatenate([dy.zeros(1), cumsum[:-1]]))
+                m_p = y_hat
 
+                M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
+                M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
+                M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
 
-        max_len = max(map(len, layer))
+                Mt = layer[i].dim()[0][1]
+                new_r =  dy.cmult(M_l, dy.select_cols(parents, range(Mt - 1)))  # lefts
+                new_r += dy.cmult(M_r, dy.select_cols(parents, range(1, Mt)))  # rights
+                new_r += dy.cmult(M_p, parents)  # parents
+                new_layer.append(new_r)  # the new representation of the sentence
 
-        # todo check if this is really what should be returned
+            layer = new_layer
+            max_len = max(map(len, layer))  # checking if all our sentences are one node
+        # end of while
+
         return layer[0]
 
 
