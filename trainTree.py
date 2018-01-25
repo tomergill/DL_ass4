@@ -3,7 +3,7 @@ from time import time
 import dynet as dy
 import numpy as np
 from sys import argv
-from GumbelSoftmaxTreeLSTM import SimpleSNLIGumbelSoftmaxTreeLSTM
+import GumbelSoftmaxTreeLSTM as gst
 from random import shuffle
 
 UNKNOWN = "UNK"
@@ -89,7 +89,70 @@ def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=
             if j % print_every == print_every - 1:
                 acc = accuracy_on(model, dev_data)
                 write_to_file.append("{},{},{},{}".format(epochs, total_loss, time() - start_time, acc))
-                print "| {:>5} | {:12} | {:8} s | {:10} % |".format(epochs, total_loss, time() - start_time, acc * 100)
+                print "| {:>5} | {:12f} | {:8f} s | {:10f} % |".format(epochs, total_loss, time() - start_time, acc*100)
+                print "+-------+--------------+------------+--------------+"
+    return write_to_file
+
+
+def accuracy_on_batch(model, data, batch_size=128):
+    """
+
+    :type model: gst.SNLIGumbelSoftmaxTreeLSTM
+    :param model:
+    :param data:
+    :param batch_size:
+    :return:
+    """
+    good = 0.0
+    for i in range(len(data), step=batch_size):
+        mini_batch = data[i, i + batch_size]
+        premises, hypotheses, tags = zip(*mini_batch)
+        # premises, hypotheses, tags = list(premises), list(hypotheses), list(tags)
+        batch_preds = model.predict_batch(premises, hypotheses)
+        good += reduce(lambda total, (pred, expected): total + (1.0 if pred == expected else 0.0),
+                       zip(batch_preds, tags), initializer=0.0)
+    return good / len(data)
+
+
+def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50000, batch_size=128):
+    """
+
+    :type model: gst.SNLIGumbelSoftmaxTreeLSTM
+    :param model:
+    :param trainer:
+    :param data:
+    :param dev_data:
+    :param epochs:
+    :param dropout_p:
+    :param print_every:
+    :param batch_size:
+    :return:
+    """
+    last = print_every - 1
+    use_dropout = dropout_p > 0.0
+    write_to_file = ["epoch,average_loss,total_time,dev_accuracy"]
+    print "+-------+--------------+------------+--------------+"
+    print "| Epoch | Average_Loss | Total_Time | Dev_Accuracy |"
+    print "+-------+--------------+------------+--------------+"
+    for i in xrange(epochs):
+        shuffle(data)
+        total = 0
+        total_loss = 0.0
+        start_time = time()
+        for j in range(len(data), step=batch_size):
+            mini_batch = data[i, i + batch_size]
+            premises, hypotheses, tags = zip(*mini_batch)
+            batch_losses = model.loss_on_batch(premises, hypotheses, tags, use_dropout, dropout_p)
+            loss = dy.esum(batch_losses)
+            total_loss += loss.value()
+            total += batch_size
+            loss.backward()
+            trainer.update()
+
+            if total % print_every == last:
+                acc = accuracy_on_batch(model, dev_data, batch_size)
+                write_to_file.append("{},{},{},{}".format(epochs, total_loss, time() - start_time, acc))
+                print "| {:>5} | {:12f} | {:8f} s | {:10f} % |".format(epochs, total_loss / total, time() - start_time, acc*100)
                 print "+-------+--------------+------------+--------------+"
     return write_to_file
 
@@ -99,6 +162,7 @@ def main():
     use_leaf_lstm = False  # -lstm
     use_leaf_bilstm = False  # -bilstm
     glove_file = "glove.840B.300d.txt"
+    use_simple = False  # -simple
 
     if len(argv) > 1:
         for arg in argv[1:]:
@@ -107,6 +171,8 @@ def main():
             if arg == "-bilstm":
                 use_leaf_lstm = True
                 use_leaf_bilstm = True
+            if arg == "-simple":
+                use_simple = True
 
     print "Starting reading GloVe file..."
     start = time()
@@ -126,8 +192,12 @@ def main():
     dropout_probability = 0.1
     epochs = 1
 
-    model = SimpleSNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
-                                            use_bilstm=use_leaf_bilstm)
+    if use_simple:
+        model = gst.SimpleSNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
+                                                    use_bilstm=use_leaf_bilstm)
+    else:
+        model = gst.SNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
+                                              use_bilstm=use_leaf_bilstm)
     trainer = dy.AdamTrainer(model.get_parameter_collection())
     TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model), dataset_to_numerical_data(dev_set, W2NV, model)
 

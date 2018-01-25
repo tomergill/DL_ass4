@@ -252,7 +252,7 @@ class GumbelSoftmaxTreeLSTM:
             for inp in inputs:
                 h0 = dy.zeros(self.__D_x)
                 c0 = dy.zeros(self.__D_x)
-                l = [dy.concatenate([h0, c0])]
+                sen = [dy.concatenate([h0, c0])]
                 last_h, last_c = h0, c0
                 if self.__use_bilstm:
                     last_bw_h, last_bw_c = h0, c0
@@ -271,8 +271,8 @@ class GumbelSoftmaxTreeLSTM:
                         h, c = dy.concatenate(h, bw_h), dy.concatenate(c, bw_c)
                         last_bw_h, last_bw_c = bw_h, bw_c
 
-                    l.append(dy.concatenate(h, c))
-                layer.append(l)
+                    sen.append(dy.concatenate(h, c))
+                layer.append(sen)
 
         max_len = max(map(len, layer))
         single_zreo = np.array([0])
