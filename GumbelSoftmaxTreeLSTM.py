@@ -23,7 +23,7 @@ class SimpleGumbelSoftmaxTreeLSTM:
             if use_bilsm:
                 self.__bw_leaf_lstm = dy.LSTMBuilder(lstm_layers, D_x, D_h, pc)
 
-        self.__query_vec = pc.add_parameters(D_h)
+        self.__query_vec = pc.add_parameters((D_h, 1))
         self.__temperatue = temperatue
         pass
 
@@ -51,7 +51,7 @@ class SimpleGumbelSoftmaxTreeLSTM:
         return [self.__represent_parent(layer[i], layer[i + 1]) for i in range(len(layer) - 1)]
 
     @staticmethod
-    def gumbell_softmax(pis, temperatue=1.0):
+    def gumbel_softmax(pis, temperatue=1.0):
         u = dy.random_uniform(pis.dim()[0], 0.0, 1.0)
         g = -dy.log(-dy.log(u))
         y = dy.exp((dy.log(pis) + g) / temperatue)
@@ -107,7 +107,7 @@ class SimpleGumbelSoftmaxTreeLSTM:
             parents_scores = dy.cdiv(parents_scores, score_sum)
 
             if not test:
-                y = self.gumbell_softmax(parents_scores, self.__temperatue)
+                y = self.gumbel_softmax(parents_scores, self.__temperatue)
             else:
                 y = parents_scores
 
@@ -183,17 +183,36 @@ class GumbelSoftmaxTreeLSTM:
         return dy.transpose(dy.concatenate_cols(self.__represent_parent(rights, lefts)))
 
     @staticmethod
-    def gumbell_softmax(pis, temperatue=1.0):
+    def gumbel_softmax(pis, temperatue=1.0):
+        """
+
+        :param pis:
+        :param temperatue:
+        :return: vecor sized pis of ys
+        """
         u = dy.random_uniform(pis.dim()[0], 0.0, 1.0)
         g = -dy.log(-dy.log(u))
         y = dy.exp((dy.log(pis) + g) / temperatue)
         y = dy.cdiv(y, dy.sum_elems(y))
         return y
 
-    @staticmethod
-    def sample_gumbell_max(query_vec, hcs):
-        eps = 1e-20
+    def __y_st_before_argmax(self, parents):
+        """
 
+        :param parents:
+        :return:
+        """
+        epsilon = 1e-20
+        q = dy.parameter(self.__query_vec)  # query vector
+        hs = dy.select_rows(parents, range(self.__D_h))
+        u = dy.random_uniform((1, hs.dim([0][1])), 0, 1)
+        g = -dy.log(-dy.log(u + epsilon) + epsilon)
+        return dy.concatenate([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])]) + g
+
+    def __parents_scores(self, parents):
+        q = dy.parameter(self.__query_vec)  # query vector
+        hs = dy.select_rows(parents, range(self.__D_h))
+        return dy.concatenate([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])])
 
     def __call__(self, inputs, test=False, renew_cg=True):
         """
@@ -243,12 +262,12 @@ class GumbelSoftmaxTreeLSTM:
                     l.append(dy.concatenate(h, c))
                 layer.append(l)
 
-        q = dy.parameter(self.__query_vec)  # query vector
         max_len = max(map(len, layer))
         single_zreo = np.array([0])
         while max_len > 1:
             batch_parents = []
             batch_y = []
+            batch_y_st = []
             for sen in layer:
                 n = sen.dim()[0][1]
                 if n == 1:
@@ -259,17 +278,16 @@ class GumbelSoftmaxTreeLSTM:
                 batch_parents.append(parents)
 
                 # creating v_1,...,v_M_t+1, Eq. (12) in the paper
-                hs = dy.select_rows(parents, range(D_h))
-                parents_scores = map(lambda (h, c): dy.dot_product(h, q), parents)
-                score_sum = dy.esum(parents_scores)
-                parents_scores = dy.concatenate(parents_scores)
+                parents_scores = self.__parents_scores(parents)
+                score_sum = dy.sum_elems(parents_scores)
                 parents_scores = dy.cdiv(parents_scores, score_sum)
 
                 if not test:
-                    y = self.gumbell_softmax(parents_scores, self.__temperatue)
+                    y = self.gumbel_softmax(parents_scores, self.__temperatue)
                 else:
                     y = parents_scores
                 batch_y.append(y)
+                batch_y_st.append(asasas)
             # end of for
 
 

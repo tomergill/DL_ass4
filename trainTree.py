@@ -3,7 +3,7 @@ from time import time
 import dynet as dy
 import numpy as np
 from sys import argv
-from GumbellSoftmaxTreeLSTM import SimpleSNLIGumbelSoftmaxTreeLSTM
+from GumbelSoftmaxTreeLSTM import SimpleSNLIGumbelSoftmaxTreeLSTM
 from random import shuffle
 
 UNKNOWN = "UNK"
