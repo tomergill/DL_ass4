@@ -1,5 +1,6 @@
 import dynet as dy
 import numpy as np
+from itertools import izip
 
 
 class SimpleGumbelSoftmaxTreeLSTM:
@@ -214,6 +215,19 @@ class GumbelSoftmaxTreeLSTM:
         hs = dy.select_rows(parents, range(self.__D_h))
         return dy.concatenate([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])])
 
+    @staticmethod
+    def cumsum(vec):
+        """
+        Computes the cum sum vector [c_1,...,c_n] of [v_1,...,v_n] where c_i = v_1 + v_2 + ... + v_i.
+        :type vec: dy.Expression
+        :param vec: Dynet expression (vector)
+        :return: A n sized vector of cumsum(v)
+        """
+        c = [vec[0]]
+        for i in xrange(1, vec.dim()[0][0]):
+            c.append(c[i - 1] + vec[i])
+        return dy.concatenate(c)
+
     def __call__(self, inputs, test=False, renew_cg=True):
         """
 
@@ -273,6 +287,8 @@ class GumbelSoftmaxTreeLSTM:
                 if n == 1:
                     batch_parents.append(sen)
                     batch_y.append(dy.inputTensor(single_zreo))
+                    batch_y_st.append(dy.inputTensor([1]))
+                    continue
 
                 parents = self.__parents_of_layer(sen)  # all possible parents of pairs in layer
                 batch_parents.append(parents)
@@ -287,15 +303,21 @@ class GumbelSoftmaxTreeLSTM:
                 else:
                     y = parents_scores
                 batch_y.append(y)
-                batch_y_st.append(asasas)
-            # end of for
+                batch_y_st.append(self.__y_st_before_argmax(parents))
+            # for's end
 
+            # dy.forward(batch_y)
+            dy.forward(batch_y_st)
 
-            y = y.npvalue()
-            # y_st = np.zeros(y.shape)
-            # y_st[y.argmax()] = 1.0
-            y = y.argmax()
-            layer = layer[:y] + [parents[y]] + layer[y+2:]
+            new_layer = []
+            for i, (y, y_st_before) in enumerate(izip(batch_y, batch_y_st)):
+                y_st_before = y_st_before.npvalue()
+                y_st = np.eye(y_st_before.shape[0])[y_st_before.argmax()]  # one-hot Straight Through (ST) vector
+                y_hat = dy.nobackprop(dy.inputTensor(y_st) - y) - y
+                cumsum = self.cumsum(y_hat)
+                m_l = 1 - cumsum
+                m_r = dy.transpose()
+
 
         max_len = max(map(len, layer))
 
