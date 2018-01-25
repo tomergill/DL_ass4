@@ -199,7 +199,8 @@ def main():
         model = gst.SNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
                                               use_bilstm=use_leaf_bilstm)
     trainer = dy.AdamTrainer(model.get_parameter_collection())
-    TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model), dataset_to_numerical_data(dev_set, W2NV, model)
+    # todo remove size limits
+    TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model)[:10000], dataset_to_numerical_data(dev_set, W2NV, model)[:1000]
 
     print "##################################################"
     print "#\tWords in GloVe vocab: {}".format(len(W2NV))
@@ -214,7 +215,10 @@ def main():
     print "#\tLeaf encoding: {}".format(("BiLSTM" if use_leaf_bilstm else "LSTM") if use_leaf_lstm else "Linear Layer")
     print "##################################################\n"
 
-    write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
+    if use_simple:
+        write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
+    else:  # todo remove print_every=1000
+        write_to_file = train_on_with_batches(model, trainer, TRAIN, DEV, epochs, dropout_probability, print_every=1000)
 
     output_file = open("log.csv", "w")
     for line in write_to_file:
