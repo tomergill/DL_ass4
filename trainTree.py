@@ -105,7 +105,7 @@ def accuracy_on_batch(model, data, batch_size=128):
     """
     good = 0.0
     for i in xrange(0, len(data), batch_size):
-        mini_batch = data[i, i + batch_size]
+        mini_batch = data[i:i + batch_size]
         premises, hypotheses, tags = zip(*mini_batch)
         # premises, hypotheses, tags = list(premises), list(hypotheses), list(tags)
         batch_preds = model.predict_batch(premises, hypotheses)
@@ -140,7 +140,7 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
         total_loss = 0.0
         start_time = time()
         for j in xrange(0, len(data), batch_size):
-            mini_batch = data[i, i + batch_size]
+            mini_batch = data[i:i + batch_size]
             premises, hypotheses, tags = zip(*mini_batch)
             batch_losses = model.loss_on_batch(premises, hypotheses, tags, use_dropout, dropout_p)
             loss = dy.esum(batch_losses)
