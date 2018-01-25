@@ -205,7 +205,7 @@ class GumbelSoftmaxTreeLSTM:
         epsilon = 1e-20
         q = dy.parameter(self.__query_vec)  # query vector
         hs = dy.select_rows(parents, range(self.__D_h))
-        u = dy.random_uniform((1, hs.dim([0][1])), 0, 1)
+        u = dy.random_uniform((1, hs.dim()[0][1]), 0, 1)
         g = -dy.log(-dy.log(u + epsilon) + epsilon)
         return dy.concatenate([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])]) + g
 
