@@ -140,7 +140,7 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
         total_loss = 0.0
         start_time = time()
         for j in xrange(0, len(data), batch_size):
-            mini_batch = data[i:i + batch_size]
+            mini_batch = data[j:j + batch_size]
             premises, hypotheses, tags = zip(*mini_batch)
             batch_losses = model.loss_on_batch(premises, hypotheses, tags, use_dropout, dropout_p)
             loss = dy.esum(batch_losses)

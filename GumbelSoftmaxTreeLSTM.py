@@ -242,7 +242,7 @@ class GumbelSoftmaxTreeLSTM:
         # make the first layer: turn each word vector (sized D_x) to a 2 D_h vectors (h, c)
         if not self.__use_leaf_lstm:
             W_leaf, b_leaf = dy.parameter(self.__W_leaf), dy.parameter(self.__b_leaf)
-            layer = [[W_leaf * dy.inputTensor(x) + b_leaf for x in inp] for inp in inputs]
+            layer = [[W_leaf * x + b_leaf for x in inp] for inp in inputs]
             layer = [dy.concatenate_cols(vecs) for vecs in layer]  # each input is now a 2*D_h by len(input)
         else:  # todo add the bilstm option
             s0 = self.__leaf_lstm.initial_state()
