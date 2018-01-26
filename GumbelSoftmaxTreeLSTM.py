@@ -315,18 +315,15 @@ class GumbelSoftmaxTreeLSTM:
         if not self.__use_leaf_lstm:
             W_leaf, b_leaf = dy.parameter(self.__W_leaf), dy.parameter(self.__b_leaf)
             layer = [[W_leaf * x + b_leaf for x in inp] for inp in inputs]
+            layer = [dy.concatenate_cols(vecs) for vecs in layer]  # each input is now a 2*D_h by len(input)
 
             for i, inp in enumerate(layer):
-                print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 for j, x in enumerate(inp):
                     if np.sum(np.isnan(x.npvalue())) > 0:
                         print inputs[i][j]
                         print "###################################################################################"
             exit(1)
-
-            layer = [dy.concatenate_cols(vecs) for vecs in layer]  # each input is now a 2*D_h by len(input)
         else:  # todo add the bilstm option
             s0 = self.__leaf_lstm.initial_state()
             if self.__use_bilstm:
