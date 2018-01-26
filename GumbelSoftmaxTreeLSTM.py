@@ -315,6 +315,16 @@ class GumbelSoftmaxTreeLSTM:
         if not self.__use_leaf_lstm:
             W_leaf, b_leaf = dy.parameter(self.__W_leaf), dy.parameter(self.__b_leaf)
             layer = [[W_leaf * x + b_leaf for x in inp] for inp in inputs]
+
+            for i, inp in enumerate(inputs):
+                print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                for j, x in enumerate(inp):
+                    if np.sum(np.isnan(x)) > 0:
+                        print inputs[i][j]
+                        print "###################################################################################"
+
             layer = [dy.concatenate_cols(vecs) for vecs in layer]  # each input is now a 2*D_h by len(input)
         else:  # todo add the bilstm option
             s0 = self.__leaf_lstm.initial_state()
@@ -466,21 +476,11 @@ class SNLIGumbelSoftmaxTreeLSTM:
     def __call__(self, premises, hypotheses, test=False, use_dropout=False, dropout_prob=0.1):
         dy.renew_cg()
 
-        print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        print premises
-        print hypotheses
-        print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-
         premises = [[dy.inputTensor(v) for v in premise] for premise in premises]
         hypotheses = [[dy.inputTensor(v) for v in hypothesis] for hypothesis in hypotheses]
         if use_dropout:  # dropout sentences
             premises = [[dy.dropout(v, dropout_prob) for v in premise] for premise in premises]
             hypotheses = [[dy.dropout(v, dropout_prob) for v in hypothesis] for hypothesis in hypotheses]
-
-        for premise in premises:
-            for x in premise:
-                print x.npvalue()
-        exit(1)
 
         hcs_pre = self.__treeLSTM(premises, renew_cg=False, test=test)
         hcs_hyp = self.__treeLSTM(hypotheses, renew_cg=False, test=test)
