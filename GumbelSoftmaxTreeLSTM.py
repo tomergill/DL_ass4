@@ -347,7 +347,7 @@ class GumbelSoftmaxTreeLSTM:
                 layer.append(sen)
 
         max_len = max(map(lambda hc: hc.dim()[0][1], layer))
-        single_zreo = np.array([0])
+        single_zreo = np.array([[0]])
         while max_len > 1:
             batch_parents = []
             batch_y = []
@@ -357,7 +357,7 @@ class GumbelSoftmaxTreeLSTM:
                 if n == 1:
                     batch_parents.append(sen)
                     batch_y.append(dy.inputTensor(single_zreo))
-                    batch_y_st.append(dy.inputTensor([1]))
+                    batch_y_st.append(dy.inputTensor([[1]]))
                     continue
 
                 parents = self.__parents_of_layer(sen)  # all possible parents of pairs in layer
