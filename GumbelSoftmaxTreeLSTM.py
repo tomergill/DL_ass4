@@ -324,6 +324,7 @@ class GumbelSoftmaxTreeLSTM:
                     if np.sum(np.isnan(x)) > 0:
                         print inputs[i][j]
                         print "###################################################################################"
+            exit(1)
 
             layer = [dy.concatenate_cols(vecs) for vecs in layer]  # each input is now a 2*D_h by len(input)
         else:  # todo add the bilstm option
