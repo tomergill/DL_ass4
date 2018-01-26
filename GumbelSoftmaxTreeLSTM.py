@@ -385,9 +385,6 @@ class GumbelSoftmaxTreeLSTM:
                     new_layer.append(parents)
 
                 y_st_before = y_st_before.npvalue()
-                print "y_st_before"
-                print y_st_before.shape
-                print y_st_before
                 y_st = np.eye(y_st_before.shape[1])[y_st_before.argmax()]  # one-hot Straight Through (ST) vector
 
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
