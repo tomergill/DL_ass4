@@ -381,7 +381,6 @@ class GumbelSoftmaxTreeLSTM:
             new_layer = []
             for i, (y, y_st_before) in enumerate(izip(batch_y, batch_y_st)):
                 parents = batch_parents[i]
-                print "parents' dim: {}".format(parents.dim())
                 if parents.dim()[0][1] == 1:  # sentence is already one node
                     new_layer.append(parents)
                     continue
