@@ -360,7 +360,7 @@ class GumbelSoftmaxTreeLSTM:
                     batch_y_st.append(dy.inputTensor([[1]]))
                     continue
                 print sen.dim()
-                print sen
+                print sen.npvalue()
                 parents = self.__parents_of_layer(sen)  # all possible parents of pairs in layer
                 batch_parents.append(parents)
 
