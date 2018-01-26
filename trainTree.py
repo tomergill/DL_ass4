@@ -196,6 +196,7 @@ def main():
     mlp_hid_dim = D_c
     dropout_probability = 0.1
     epochs = 1
+    batch_size = 32
 
     if use_simple:
         model = gst.SimpleSNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
@@ -218,12 +219,14 @@ def main():
     print "#\tTrain set size: {}".format(len(TRAIN))
     print "#\tDev set size: {}".format(len(DEV))
     print "#\tLeaf encoding: {}".format(("BiLSTM" if use_leaf_bilstm else "LSTM") if use_leaf_lstm else "Linear Layer")
+    print "#\tBatch size: {}".format(batch_size)
     print "##################################################\n"
 
     if use_simple:
         write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
     else:  # todo remove print_every=1000
-        write_to_file = train_on_with_batches(model, trainer, TRAIN, DEV, epochs, dropout_probability, print_every=1000)
+        write_to_file = train_on_with_batches(model, trainer, TRAIN, DEV, epochs, dropout_probability,
+                                              print_every=1000, batch_size=batch_size)
 
     output_file = open("log.csv", "w")
     for line in write_to_file:
