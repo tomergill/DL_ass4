@@ -321,7 +321,7 @@ class GumbelSoftmaxTreeLSTM:
                 print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 for j, x in enumerate(inp):
-                    if np.sum(np.isnan(x)) > 0:
+                    if np.sum(np.isnan(x.npvalue())) > 0:
                         print inputs[i][j]
                         print "###################################################################################"
             exit(1)
