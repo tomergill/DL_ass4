@@ -297,10 +297,6 @@ class GumbelSoftmaxTreeLSTM:
         c = [vec[0]]
         for i in xrange(1, vec.dim()[0][0]):
             c.append(c[i - 1] + vec[i])
-
-        print "v.dim() is {}".format(vec.dim())
-        print "cum sum shoud be {} long".format(vec.dim()[0][0])
-        print "cumsum is {} long".format(len(c))
         return dy.concatenate(c)  # vector
 
     def __call__(self, inputs, test=False, renew_cg=True):
@@ -389,15 +385,14 @@ class GumbelSoftmaxTreeLSTM:
                     new_layer.append(parents)
 
                 y_st_before = y_st_before.npvalue()
-                y_st = np.eye(y_st_before.shape[1])[y_st_before.argmax(axis=1)]  # one-hot Straight Through (ST) vector
+                n = y_st_before.shape[1]
+                y_st = np.eye(n)
+                amax = y_st_before.argmax(axis=1)
+                print "n is {}, argmax is {}".format(n, amax)  # todo remove this
+                y_st = y_st[amax]  # one-hot Straight Through (ST) vector
                 y_st = dy.inputTensor(y_st[0])
+
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
-
-                print "########################################################################"
-                print "y.dim() {}".format(y.dim())
-                print "y_st.shape {}".format(y_st.dim())
-                print "########################################################################"
-
                 y_hat = dy.nobackprop(y_st - y) - y
 
                 Mt = layer[i].dim()[0][1]
@@ -409,9 +404,6 @@ class GumbelSoftmaxTreeLSTM:
                 else:
                     m_r = dy.zeros(1)
                 m_p = y_hat
-
-                print "cumsum: {}".format(cumsum.dim())
-                print "m_l: {}".format(m_l.dim())
 
                 M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
                 M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
