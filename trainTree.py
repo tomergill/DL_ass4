@@ -148,11 +148,11 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
             total_loss += loss.value()
             total += batch_size
             loss.backward()
-            try:
-                trainer.update()
-            except RuntimeError:
-                trainer.restart()
-                continue
+            # try:
+            trainer.update()
+            # except RuntimeError:
+            #     trainer.restart()
+            #     continue
 
             if total % print_every == last:
                 acc = accuracy_on_batch(model, dev_data, batch_size)
