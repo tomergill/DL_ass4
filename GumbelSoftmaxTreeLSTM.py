@@ -311,6 +311,9 @@ class GumbelSoftmaxTreeLSTM:
             dy.renew_cg()
         D_h = self.__D_h
 
+        for x in inputs:
+            print x
+
         # make the first layer: turn each word vector (sized D_x) to a 2 D_h vectors (h, c)
         if not self.__use_leaf_lstm:
             W_leaf, b_leaf = dy.parameter(self.__W_leaf), dy.parameter(self.__b_leaf)
