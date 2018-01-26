@@ -365,8 +365,12 @@ class GumbelSoftmaxTreeLSTM:
 
                 # creating v_1,...,v_M_t+1, Eq. (12) in the paper
                 parents_scores = self.__parents_scores(parents)
+                print "parents"
+                print parents.npvalue()
                 score_sum = dy.sum_elems(parents_scores)
                 parents_scores = dy.cdiv(parents_scores, score_sum)
+                print "scores"
+                print parents_scores.npvalue()
 
                 if not test:
                     y = self.gumbel_softmax(parents_scores, self.__temperatue)
