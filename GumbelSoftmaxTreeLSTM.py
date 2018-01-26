@@ -317,40 +317,35 @@ class GumbelSoftmaxTreeLSTM:
             layer = [[W_leaf * x + b_leaf for x in inp] for inp in inputs]
             layer = [dy.concatenate_cols(vecs) for vecs in layer]  # each input is now a 2*D_h by len(input)
 
-            for i, inp in enumerate(layer):
-                print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                print inp.npvalue()
-                print inputs[i]
-            exit(1)
-        else:  # todo add the bilstm option
-            s0 = self.__leaf_lstm.initial_state()
-            if self.__use_bilstm:
-                bw_s0 = self.__bw_leaf_lstm.initial_state()
-            layer = []
-            for inp in inputs:
-                h0 = dy.zeros(self.__D_x)
-                c0 = dy.zeros(self.__D_x)
-                sen = [dy.concatenate([h0, c0])]
-                last_h, last_c = h0, c0
-                if self.__use_bilstm:
-                    last_bw_h, last_bw_c = h0, c0
-
-                length = len(inp)
-                for i in xrange(1, length):
-                    lstm_input = [inp[i], last_h, last_c]
-                    hc = s0.transduce(lstm_input)
-                    h, c = hc[0:D_h], hc[D_h:2 * D_h]
-                    last_h, last_c = h, c
-
-                    if self.__use_bilstm:
-                        bw_lstm_input = [inp[length - 1 - i], last_bw_h, last_bw_c]
-                        bw_hc = bw_s0.transduce(bw_lstm_input)
-                        bw_h, bw_c = bw_hc[0:D_h], bw_hc[D_h:2 * D_h]
-                        h, c = dy.concatenate(h, bw_h), dy.concatenate(c, bw_c)
-                        last_bw_h, last_bw_c = bw_h, bw_c
-
-                    sen.append(dy.concatenate(h, c))
-                layer.append(sen)
+        # else:  # todo add the bilstm option
+        #     s0 = self.__leaf_lstm.initial_state()
+        #     if self.__use_bilstm:
+        #         bw_s0 = self.__bw_leaf_lstm.initial_state()
+        #     layer = []
+        #     for inp in inputs:
+        #         h0 = dy.zeros(self.__D_x)
+        #         c0 = dy.zeros(self.__D_x)
+        #         sen = [dy.concatenate([h0, c0])]
+        #         last_h, last_c = h0, c0
+        #         if self.__use_bilstm:
+        #             last_bw_h, last_bw_c = h0, c0
+        #
+        #         length = len(inp)
+        #         for i in xrange(1, length):
+        #             lstm_input = [inp[i], last_h, last_c]
+        #             hc = s0.transduce(lstm_input)
+        #             h, c = hc[0:D_h], hc[D_h:2 * D_h]
+        #             last_h, last_c = h, c
+        #
+        #             if self.__use_bilstm:
+        #                 bw_lstm_input = [inp[length - 1 - i], last_bw_h, last_bw_c]
+        #                 bw_hc = bw_s0.transduce(bw_lstm_input)
+        #                 bw_h, bw_c = bw_hc[0:D_h], bw_hc[D_h:2 * D_h]
+        #                 h, c = dy.concatenate(h, bw_h), dy.concatenate(c, bw_c)
+        #                 last_bw_h, last_bw_c = bw_h, bw_c
+        #
+        #             sen.append(dy.concatenate(h, c))
+        #         layer.append(sen)
 
         max_len = max(map(lambda hc: hc.dim()[0][1], layer))
         single_zreo = np.array([[0]])
