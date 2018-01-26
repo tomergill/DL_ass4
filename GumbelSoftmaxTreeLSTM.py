@@ -381,15 +381,14 @@ class GumbelSoftmaxTreeLSTM:
             new_layer = []
             for i, (y, y_st_before) in enumerate(izip(batch_y, batch_y_st)):
                 parents = batch_parents[i]
+                print "parents' dim: {}".format(parents.dim())
                 if parents.dim()[0][1] == 1:  # sentence is already one node
                     new_layer.append(parents)
 
                 y_st_before = y_st_before.npvalue()
-                print "y_st_before.shape {}".format(y_st_before.shape)
                 n = y_st_before.shape[1]
                 y_st = np.eye(n)
                 amax = y_st_before.argmax(axis=1)
-                print "n is {}, argmax is {}".format(n, amax)  # todo remove this
                 y_st = y_st[amax]  # one-hot Straight Through (ST) vector
                 y_st = dy.inputTensor(y_st[0])
 
