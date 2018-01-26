@@ -390,15 +390,15 @@ class GumbelSoftmaxTreeLSTM:
 
                 y_st_before = y_st_before.npvalue()
                 y_st = np.eye(y_st_before.shape[1])[y_st_before.argmax(axis=1)]  # one-hot Straight Through (ST) vector
-
+                y_st = dy.inputTensor(y_st)
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
 
                 print "########################################################################"
                 print "y.dim() {}".format(y.dim())
-                print "y_st.shape {}".format(y_st.shape)
+                print "y_st.shape {}".format(y_st.dim())
                 print "########################################################################"
 
-                y_hat = dy.nobackprop(dy.inputTensor(y_st) - y) - y
+                y_hat = dy.nobackprop(y_st - y) - y
 
                 Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
