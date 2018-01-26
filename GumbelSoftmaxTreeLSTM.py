@@ -384,6 +384,7 @@ class GumbelSoftmaxTreeLSTM:
                 print "parents' dim: {}".format(parents.dim())
                 if parents.dim()[0][1] == 1:  # sentence is already one node
                     new_layer.append(parents)
+                    continue
 
                 y_st_before = y_st_before.npvalue()
                 n = y_st_before.shape[1]
