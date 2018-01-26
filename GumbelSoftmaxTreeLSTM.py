@@ -354,6 +354,7 @@ class GumbelSoftmaxTreeLSTM:
             batch_y = []
             batch_y_st = []
             print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            print "max len = {}".format(max_len)
             for sen in layer:
                 n = sen.dim()[0][1]
                 if n == 1:
