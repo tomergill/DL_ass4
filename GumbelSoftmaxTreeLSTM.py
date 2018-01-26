@@ -284,7 +284,7 @@ class GumbelSoftmaxTreeLSTM:
     def __parents_scores(self, parents):
         q = dy.parameter(self.__query_vec)  # query vector
         hs = dy.select_rows(parents, range(self.__D_h))
-        return dy.concatenate([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])])
+        return dy.concatenate([dy.exp(dy.dot_product(dy.select_cols(hs, [i]), q)) for i in range(hs.dim()[0][1])])
 
     @staticmethod
     def cumsum(vec):
