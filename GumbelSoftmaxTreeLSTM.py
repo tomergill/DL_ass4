@@ -297,7 +297,7 @@ class GumbelSoftmaxTreeLSTM:
         c = [vec[0]]
         for i in xrange(1, vec.dim()[0][0]):
             c.append(c[i - 1] + vec[i])
-        return dy.concatenate(c)
+        return dy.concatenate(c)  # vector
 
     def __call__(self, inputs, test=False, renew_cg=True):
         """
@@ -395,16 +395,12 @@ class GumbelSoftmaxTreeLSTM:
 
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
                 m_l = 1 - cumsum
-                m_r = dy.transpose(dy.concatenate([dy.zeros(1), cumsum[:-1]]))
+                m_r = dy.concatenate([dy.zeros(1), cumsum[:-1]])
                 m_p = y_hat
 
-                # M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
-                # M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
-                # M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
-
-                M_l = dy.concatenate([m_l for _ in xrange(2 * D_h)])
-                M_r = dy.concatenate([m_r for _ in xrange(2 * D_h)])
-                M_p = dy.concatenate([m_p for _ in xrange(2 * D_h)])
+                M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
+                M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
+                M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
 
                 Mt = layer[i].dim()[0][1]
                 new_r = dy.cmult(M_l, dy.select_cols(parents, range(Mt - 1)))  # lefts
