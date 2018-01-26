@@ -390,7 +390,7 @@ class GumbelSoftmaxTreeLSTM:
 
                 y_st_before = y_st_before.npvalue()
                 y_st = np.eye(y_st_before.shape[1])[y_st_before.argmax(axis=1)]  # one-hot Straight Through (ST) vector
-                y_st = dy.inputTensor(y_st)
+                y_st = dy.inputTensor(y_st[0])
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
 
                 print "########################################################################"
