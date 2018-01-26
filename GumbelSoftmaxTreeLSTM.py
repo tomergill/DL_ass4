@@ -385,6 +385,7 @@ class GumbelSoftmaxTreeLSTM:
                     new_layer.append(parents)
 
                 y_st_before = y_st_before.npvalue()
+                print "y_st_before.shape {}".format(y_st_before.shape)
                 n = y_st_before.shape[1]
                 y_st = np.eye(n)
                 amax = y_st_before.argmax(axis=1)
