@@ -359,7 +359,8 @@ class GumbelSoftmaxTreeLSTM:
                     batch_y.append(dy.inputTensor(single_zreo))
                     batch_y_st.append(dy.inputTensor([[1]]))
                     continue
-
+                print sen.dim()
+                print sen
                 parents = self.__parents_of_layer(sen)  # all possible parents of pairs in layer
                 batch_parents.append(parents)
 
