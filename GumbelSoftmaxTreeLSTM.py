@@ -393,11 +393,11 @@ class GumbelSoftmaxTreeLSTM:
                 Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
 
-                print "cumsum.dim() {}".format(cumsum.dim())
-                print "Mt {}".format(Mt)
-
                 m_l = 1 - cumsum
-                m_r = dy.concatenate([dy.zeros(1), cumsum[0:Mt-2]])  # Mt - 2 = M(t+1) - 1
+                if Mt> 2:
+                    m_r = dy.concatenate([dy.zeros(1), cumsum[0:Mt-2]])  # Mt - 2 = M(t+1) - 1
+                else:
+                    m_r = dy.zeros(1)
                 m_p = y_hat
 
                 M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
