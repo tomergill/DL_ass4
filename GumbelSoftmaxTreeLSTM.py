@@ -312,7 +312,7 @@ class GumbelSoftmaxTreeLSTM:
         D_h = self.__D_h
 
         for x in inputs:
-            print x
+            print x.npvalue()
 
         # make the first layer: turn each word vector (sized D_x) to a 2 D_h vectors (h, c)
         if not self.__use_leaf_lstm:
