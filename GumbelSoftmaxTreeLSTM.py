@@ -402,8 +402,8 @@ class GumbelSoftmaxTreeLSTM:
                 Mt = layer[i].dim()[0][1]
                 print "layer[i]: {} (Mt is the 2nd)".format(layer[i].dim()[0])
                 print "parents.dim() = {}".format(parents.dim()[0])
-                new_r = dy.cmult(M_l, dy.select_cols(parents, range(Mt - 1)))  # lefts
-                new_r += dy.cmult(M_r, dy.select_cols(parents, range(1, Mt)))  # rights
+                new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
+                new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights
                 new_r += dy.cmult(M_p, parents)  # parents
                 new_layer.append(new_r)  # the new representation of the sentence
 
