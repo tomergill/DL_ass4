@@ -353,8 +353,6 @@ class GumbelSoftmaxTreeLSTM:
             batch_parents = []
             batch_y = []
             batch_y_st = []
-            print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-            print "max len = {}".format(max_len)
             for sen in layer:
                 n = sen.dim()[0][1]
                 if n == 1:
@@ -362,35 +360,23 @@ class GumbelSoftmaxTreeLSTM:
                     batch_y.append(dy.inputTensor(single_zreo))
                     batch_y_st.append(dy.inputTensor([[1]]))
                     continue
-                print sen.dim()
-                print sen.npvalue()
-                if np.sum(np.isnan(sen.npvalue())) > 0:
-                    exit(1)
                 parents = self.__parents_of_layer(sen)  # all possible parents of pairs in layer
                 batch_parents.append(parents)
 
                 # creating v_1,...,v_M_t+1, Eq. (12) in the paper
                 parents_scores = self.__parents_scores(parents)
-                print "parents"
-                print parents.npvalue()
                 score_sum = dy.sum_elems(parents_scores)
                 parents_scores = dy.cdiv(parents_scores, score_sum)
-                print "scores"
-                print parents_scores.npvalue()
 
                 if not test:
                     y = self.gumbel_softmax(parents_scores, self.__temperatue)
                 else:
                     y = parents_scores
-                print "y"
-                print y.npvalue()
                 batch_y.append(y)
                 batch_y_st.append(self.__y_st_before_argmax(parents))
             # for's end
 
             dy.forward(batch_y_st)
-
-            print "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
 
             new_layer = []
             for i, (y, y_st_before) in enumerate(izip(batch_y, batch_y_st)):
@@ -400,25 +386,17 @@ class GumbelSoftmaxTreeLSTM:
                     continue
 
                 y_st_before = y_st_before.npvalue()
-                print "y_st before "
-                print y_st_before
                 n = y_st_before.shape[1]
                 y_st = np.eye(n)
                 amax = y_st_before.argmax(axis=1)
                 y_st = y_st[amax]  # one-hot Straight Through (ST) vector
-                print "y_st"
-                print y_st
                 y_st = dy.inputTensor(y_st[0])
 
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
                 y_hat = dy.nobackprop(y_st - y) - y
-                print "y_hat"
-                print y_hat.npvalue()
 
                 Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
-                print "cumsum"
-                print cumsum.npvalue()
 
                 m_l = 1 - cumsum
                 if Mt> 2:
@@ -432,14 +410,8 @@ class GumbelSoftmaxTreeLSTM:
                 M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
 
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
-                print "lefts"
-                print new_r
                 new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights
-                print "lefts+rights"
-                print new_r
                 new_r += dy.cmult(M_p, parents)  # parents
-                print "lefts+rights+parents"
-                print new_r
                 new_layer.append(new_r)  # the new representation of the sentence
 
             layer = new_layer
