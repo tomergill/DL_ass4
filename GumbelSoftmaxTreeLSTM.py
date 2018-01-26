@@ -353,6 +353,7 @@ class GumbelSoftmaxTreeLSTM:
             batch_parents = []
             batch_y = []
             batch_y_st = []
+            print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             for sen in layer:
                 n = sen.dim()[0][1]
                 if n == 1:
@@ -362,6 +363,8 @@ class GumbelSoftmaxTreeLSTM:
                     continue
                 print sen.dim()
                 print sen.npvalue()
+                if np.sum(np.isnan(sen.npvalue())) > 0:
+                    exit(1)
                 parents = self.__parents_of_layer(sen)  # all possible parents of pairs in layer
                 batch_parents.append(parents)
 
