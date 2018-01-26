@@ -390,16 +390,17 @@ class GumbelSoftmaxTreeLSTM:
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
                 y_hat = dy.nobackprop(dy.inputTensor(y_st) - y) - y
 
+                Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
                 m_l = 1 - cumsum
-                m_r = dy.concatenate([dy.zeros(1), cumsum[:-1]])
+                m_r = dy.concatenate([dy.zeros(1), cumsum[0:Mt-2]])  # Mt - 2 = M(t+1) - 1
                 m_p = y_hat
 
                 M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
                 M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
                 M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
 
-                Mt = layer[i].dim()[0][1]
+
                 # print "layer[i]: {} (Mt is the 2nd)".format(layer[i].dim()[0])
                 # print "parents.dim() = {}".format(parents.dim()[0])
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
