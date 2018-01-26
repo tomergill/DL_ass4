@@ -382,11 +382,15 @@ class GumbelSoftmaxTreeLSTM:
                     y = self.gumbel_softmax(parents_scores, self.__temperatue)
                 else:
                     y = parents_scores
+                print "y"
+                print y.npvalue()
                 batch_y.append(y)
                 batch_y_st.append(self.__y_st_before_argmax(parents))
             # for's end
 
             dy.forward(batch_y_st)
+
+            print "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
 
             new_layer = []
             for i, (y, y_st_before) in enumerate(izip(batch_y, batch_y_st)):
@@ -396,17 +400,25 @@ class GumbelSoftmaxTreeLSTM:
                     continue
 
                 y_st_before = y_st_before.npvalue()
+                print "y_st before "
+                print y_st_before
                 n = y_st_before.shape[1]
                 y_st = np.eye(n)
                 amax = y_st_before.argmax(axis=1)
                 y_st = y_st[amax]  # one-hot Straight Through (ST) vector
+                print "y_st"
+                print y_st
                 y_st = dy.inputTensor(y_st[0])
 
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
                 y_hat = dy.nobackprop(y_st - y) - y
+                print "y_hat"
+                print y_hat.npvalue()
 
                 Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
+                print "cumsum"
+                print cumsum.npvalue()
 
                 m_l = 1 - cumsum
                 if Mt> 2:
@@ -420,8 +432,14 @@ class GumbelSoftmaxTreeLSTM:
                 M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
 
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
+                print "lefts"
+                print new_r
                 new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights
+                print "lefts+rights"
+                print new_r
                 new_r += dy.cmult(M_p, parents)  # parents
+                print "lefts+rights+parents"
+                print new_r
                 new_layer.append(new_r)  # the new representation of the sentence
 
             layer = new_layer
