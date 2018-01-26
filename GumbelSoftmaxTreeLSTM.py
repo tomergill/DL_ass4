@@ -319,10 +319,8 @@ class GumbelSoftmaxTreeLSTM:
 
             for i, inp in enumerate(layer):
                 print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                for j, x in enumerate(inp):
-                    print x.npvalue()
-                    print "#######################################################"
-                    print inputs[i][j].npvalue()
+                print inp.npvalue()
+                print inputs[i]
             exit(1)
         else:  # todo add the bilstm option
             s0 = self.__leaf_lstm.initial_state()
