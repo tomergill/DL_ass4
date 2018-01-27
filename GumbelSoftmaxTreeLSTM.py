@@ -385,18 +385,31 @@ class GumbelSoftmaxTreeLSTM:
                     new_layer.append(parents)
                     continue
 
+                print "layer[{}]".format(i)
+                print layer[i].npvalue()
                 y_st_before = y_st_before.npvalue()
+                print "y_st_before"
+                print y_st_before
                 n = y_st_before.shape[1]
                 y_st = np.eye(n)
                 amax = y_st_before.argmax(axis=1)
                 y_st = y_st[amax]  # one-hot Straight Through (ST) vector
                 y_st = dy.inputTensor(y_st[0])
 
+                print "y"
+                print y.npvalue()
+                print "y_st"
+                print y_st.npvalue()
+
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
                 y_hat = dy.nobackprop(y_st - y) - y
+                print "y_hat"
+                print y_hat
 
                 Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
+                print "cumsum"
+                print cumsum
 
                 m_l = 1 - cumsum
                 if Mt> 2:
@@ -404,6 +417,13 @@ class GumbelSoftmaxTreeLSTM:
                 else:
                     m_r = dy.zeros(1)
                 m_p = y_hat
+
+                print "ml"
+                print m_l.npvalue()
+                print "mr"
+                print m_r.npvalue()
+                print "mp"
+                print m_p.npvalue()
 
                 M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
                 M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
@@ -459,7 +479,7 @@ class SNLIGumbelSoftmaxTreeLSTM:
         return W * x + b
 
     def __call__(self, premises, hypotheses, test=False, use_dropout=False, dropout_prob=0.1):
-        dy.renew_cg(True, True)
+        dy.renew_cg()
 
         premises = [[dy.inputTensor(v) for v in premise] for premise in premises]
         hypotheses = [[dy.inputTensor(v) for v in hypothesis] for hypothesis in hypotheses]
