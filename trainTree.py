@@ -197,7 +197,7 @@ def main():
     mlp_hid_dim = D_c
     dropout_probability = 0.1
     epochs = 1
-    batch_size = 32
+    batch_size = 16
 
     if use_simple:
         model = gst.SimpleSNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
