@@ -385,31 +385,18 @@ class GumbelSoftmaxTreeLSTM:
                     new_layer.append(parents)
                     continue
 
-                print "layer[{}]".format(i)
-                print layer[i].npvalue()
                 y_st_before = y_st_before.npvalue()
-                print "y_st_before"
-                print y_st_before
                 n = y_st_before.shape[1]
                 y_st = np.eye(n)
                 amax = y_st_before.argmax(axis=1)
                 y_st = y_st[amax]  # one-hot Straight Through (ST) vector
                 y_st = dy.inputTensor(y_st[0])
 
-                print "y"
-                print y.npvalue()
-                print "y_st"
-                print y_st.npvalue()
-
                 # in forward pass, uses the one-hot y_st, but backwards propagates to the gumbel-softmax vector, y
                 y_hat = dy.nobackprop(y_st - y) - y
-                print "y_hat"
-                print y_hat
 
                 Mt = layer[i].dim()[0][1]
                 cumsum = self.cumsum(y_hat)  # c[i] = sum([y1, ..., yi])
-                print "cumsum"
-                print cumsum
 
                 m_l = 1 - cumsum
                 if Mt> 2:
@@ -418,16 +405,35 @@ class GumbelSoftmaxTreeLSTM:
                     m_r = dy.zeros(1)
                 m_p = y_hat
 
-                print "ml"
-                print m_l.npvalue()
-                print "mr"
-                print m_r.npvalue()
-                print "mp"
-                print m_p.npvalue()
-
                 M_l = dy.transpose(dy.concatenate_cols([m_l for _ in xrange(2 * D_h)]))
                 M_r = dy.transpose(dy.concatenate_cols([m_r for _ in xrange(2 * D_h)]))
                 M_p = dy.transpose(dy.concatenate_cols([m_p for _ in xrange(2 * D_h)]))
+
+                a = np.sum(np.isnan(M_l.npvalue()))
+                b = np.sum(np.isnan(layer[i].npvalue()))
+                if a > 0:
+                    print "IT'S M_l!!!!!!!!!!!!!!!!!!!"
+                if b > 0:
+                    print "ITS LAYER"
+                if a+b > 0:
+                    print "layer[{}]".format(i)
+                    print layer[i].npvalue()
+                    print "y_st_before"
+                    print y_st_before
+                    print "y"
+                    print y.npvalue()
+                    print "y_st"
+                    print y_st.npvalue()
+                    print "y_hat"
+                    print y_hat.npvalue()
+                    print "cumsum"
+                    print cumsum.npvalue()
+                    print "ml"
+                    print m_l.npvalue()
+                    print "mr"
+                    print m_r.npvalue()
+                    print "mp"
+                    print m_p.npvalue()
 
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
                 new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights
