@@ -234,16 +234,16 @@ class GumbelSoftmaxTreeLSTM:
         hs = dy.concatenate([h_l, h_r])  # 2 * D_h by n - 1 matrix
         temp = W * hs + b  #
 
-        if np.sum(np.isnan(temp.npvalue())):
-            print "h_l with {} nans".format(np.sum(np.isnan(h_l.npvalue())))
-            print h_l.npvalue()
-            print "h_r with {} nans".format(np.sum(np.isnan(h_r.npvalue())))
-            print h_r.npvalue()
-            print "W has {} nans".format(np.sum(np.isnan(W.npvalue())))
-            print W.npvalue()
-            print "b has {} nans".format(np.sum(np.isnan(b.npvalue())))
-            print b.npvalue()
-            exit(1)
+        # if np.sum(np.isnan(temp.npvalue())):
+        #     print "h_l with {} nans".format(np.sum(np.isnan(h_l.npvalue())))
+        #     print h_l.npvalue()
+        #     print "h_r with {} nans".format(np.sum(np.isnan(h_r.npvalue())))
+        #     print h_r.npvalue()
+        #     print "W has {} nans".format(np.sum(np.isnan(W.npvalue())))
+        #     print W.npvalue()
+        #     print "b has {} nans".format(np.sum(np.isnan(b.npvalue())))
+        #     print b.npvalue()
+        #     exit(1)
 
         # Generating i, f_l, f_r, o & g - D_h by n - 1 matrices
         d = self.__D_h
@@ -257,34 +257,34 @@ class GumbelSoftmaxTreeLSTM:
         c_p = dy.cmult(f_l, c_l) + dy.cmult(f_r, c_r) + dy.cmult(i, g)
         h_p = dy.cmult(o, dy.tanh(c_p))
 
-        if np.sum(np.isnan(h_p.npvalue())) > 0 or np.sum(np.isnan(c_p.npvalue())) > 0:
-            print "h_p has {} nans".format(np.sum(np.isnan(h_p.npvalue())))
-            print h_p.npvalue()
-            print "c_p has {} nans".format(np.sum(np.isnan(c_p.npvalue())))
-            print c_p.npvalue()
-            print "f_l has {} nans".format(np.sum(np.isnan(f_l.npvalue())))
-            print f_l.npvalue()
-            print "c_l has {} nans".format(np.sum(np.isnan(c_l.npvalue())))
-            print c_l.npvalue()
-            print "f_r has {} nans".format(np.sum(np.isnan(f_r.npvalue())))
-            print f_r.npvalue()
-            print "c_r has {} nans".format(np.sum(np.isnan(c_r.npvalue())))
-            print c_r.npvalue()
-            print "i has {} nans".format(np.sum(np.isnan(i.npvalue())))
-            print i.npvalue()
-            print "g has {} nans".format(np.sum(np.isnan(g.npvalue())))
-            print g.npvalue()
-            print "o"
-            print o.npvalue()
-            print "temp (before activation functions) has {} nans".format(np.sum(np.isnan(temp.npvalue())))
-            print temp.npvalue()
-            tl = f_l.npvalue() * c_l.npvalue()
-            tr = f_r.npvalue() * c_r.npvalue()
-            tig = i.npvalue() * g.npvalue()
-            print "tl has {} nans, tr has {} nans, tig has {} nans".format(np.sum(np.isnan(tl)), np.sum(np.isnan(tr)),
-                                                                           np.sum(np.isnan(tig)))
-            print "their sum has {} nans".format(np.sum(np.isnan(tl + tr + tig)))
-            exit(1)
+        # if np.sum(np.isnan(h_p.npvalue())) > 0 or np.sum(np.isnan(c_p.npvalue())) > 0:
+        #     print "h_p has {} nans".format(np.sum(np.isnan(h_p.npvalue())))
+        #     print h_p.npvalue()
+        #     print "c_p has {} nans".format(np.sum(np.isnan(c_p.npvalue())))
+        #     print c_p.npvalue()
+        #     print "f_l has {} nans".format(np.sum(np.isnan(f_l.npvalue())))
+        #     print f_l.npvalue()
+        #     print "c_l has {} nans".format(np.sum(np.isnan(c_l.npvalue())))
+        #     print c_l.npvalue()
+        #     print "f_r has {} nans".format(np.sum(np.isnan(f_r.npvalue())))
+        #     print f_r.npvalue()
+        #     print "c_r has {} nans".format(np.sum(np.isnan(c_r.npvalue())))
+        #     print c_r.npvalue()
+        #     print "i has {} nans".format(np.sum(np.isnan(i.npvalue())))
+        #     print i.npvalue()
+        #     print "g has {} nans".format(np.sum(np.isnan(g.npvalue())))
+        #     print g.npvalue()
+        #     print "o"
+        #     print o.npvalue()
+        #     print "temp (before activation functions) has {} nans".format(np.sum(np.isnan(temp.npvalue())))
+        #     print temp.npvalue()
+        #     tl = f_l.npvalue() * c_l.npvalue()
+        #     tr = f_r.npvalue() * c_r.npvalue()
+        #     tig = i.npvalue() * g.npvalue()
+        #     print "tl has {} nans, tr has {} nans, tig has {} nans".format(np.sum(np.isnan(tl)), np.sum(np.isnan(tr)),
+        #                                                                    np.sum(np.isnan(tig)))
+        #     print "their sum has {} nans".format(np.sum(np.isnan(tl + tr + tig)))
+        #     exit(1)
 
         return [h_p, c_p]
 
@@ -320,12 +320,12 @@ class GumbelSoftmaxTreeLSTM:
         hs = dy.select_rows(parents, range(self.__D_h))
         u = dy.random_uniform((1, hs.dim()[0][1]), 0, 1)
         g = -dy.log(-dy.log(u + epsilon) + epsilon)
-        if np.sum(np.isnan(g.npvalue())) > 0:  # todo remove this
-            print "GGGGGGGGG"
-            print "u:"
-            print u.npvalue()
-            print "G"
-            print g.npvalue()
+        # if np.sum(np.isnan(g.npvalue())) > 0:  # todo remove this
+        #     print "GGGGGGGGG"
+        #     print "u:"
+        #     print u.npvalue()
+        #     print "G"
+        #     print g.npvalue()
         return dy.concatenate_cols([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])]) + g
 
     def __parents_scores(self, parents):
@@ -397,7 +397,7 @@ class GumbelSoftmaxTreeLSTM:
         max_len = max(map(lambda hc: hc.dim()[0][1], layer))
         single_zreo = np.array([[0]])
         while max_len > 1:
-            print "\nMAX LEN IS {}]\n".format(max_len)  # todo remove this
+            # print "\nMAX LEN IS {}]\n".format(max_len)  # todo remove this
             batch_parents = []
             batch_y = []
             batch_y_st = []
@@ -459,32 +459,32 @@ class GumbelSoftmaxTreeLSTM:
 
                 a = np.sum(np.isnan(M_l.npvalue()))
                 b = np.sum(np.isnan(layer[i].npvalue()))
-                if a > 0:
-                    print "IT'S M_l!!!!!!!!!!!!!!!!!!!"
-                if b > 0:
-                    print "ITS LAYER"
-                if a+b > 0:
-                    print "layer[{}]".format(i)
-                    print layer[i].npvalue()
-                    print "parents[i]"
-                    print batch_parents[i].npvalue()
-                    print "y_st_before"
-                    print y_st_before
-                    print "y"
-                    print y.npvalue()
-                    print "y_st"
-                    print y_st.npvalue()
-                    print "y_hat"
-                    print y_hat.npvalue()
-                    print "cumsum"
-                    print cumsum.npvalue()
-                    print "ml"
-                    print m_l.npvalue()
-                    print "mr"
-                    print m_r.npvalue()
-                    print "mp"
-                    print m_p.npvalue()
-                    exit(1)
+                # if a > 0:
+                #     print "IT'S M_l!!!!!!!!!!!!!!!!!!!"
+                # if b > 0:
+                #     print "ITS LAYER"
+                # if a+b > 0:
+                #     print "layer[{}]".format(i)
+                #     print layer[i].npvalue()
+                #     print "parents[i]"
+                #     print batch_parents[i].npvalue()
+                #     print "y_st_before"
+                #     print y_st_before
+                #     print "y"
+                #     print y.npvalue()
+                #     print "y_st"
+                #     print y_st.npvalue()
+                #     print "y_hat"
+                #     print y_hat.npvalue()
+                #     print "cumsum"
+                #     print cumsum.npvalue()
+                #     print "ml"
+                #     print m_l.npvalue()
+                #     print "mr"
+                #     print m_r.npvalue()
+                #     print "mp"
+                #     print m_p.npvalue()
+                #     exit(1)
 
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
                 new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights

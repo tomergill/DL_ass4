@@ -14,7 +14,7 @@ def read_glove(file_name):
     for line in file(file_name):
         line = line.split()
         word = line.pop(0)
-        W2NV[word] = np.array(map(np.float128, line))
+        W2NV[word] = np.array(map(float, line))
     return W2NV
 
 
@@ -148,11 +148,11 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
             total_loss += loss.value()
             total += batch_size
             loss.backward()
-            # try:
-            trainer.update()
-            # except RuntimeError:
-            #     trainer.restart()
-            #     continue
+            try:
+                trainer.update()
+            except RuntimeError:
+                # trainer.restart()
+                continue
 
             if total % print_every == last:
                 acc = accuracy_on_batch(model, dev_data, batch_size)
