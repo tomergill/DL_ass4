@@ -247,21 +247,21 @@ class GumbelSoftmaxTreeLSTM:
         h_p = dy.cmult(o, dy.tanh(c_p))
 
         if np.sum(np.isnan(c_p.npvalue())) > 0:
-            print "ITS C_P"
+            print "ITS C_P with {} nans".format(np.sum(np.isnan(c_p.npvalue())))
             print c_p.npvalue()
-            print "f_l"
+            print "f_l has {} nans".format(np.sum(np.isnan(f_l.npvalue())))
             print f_l.npvalue()
-            print "c_l"
+            print "c_l has {} nans".format(np.sum(np.isnan(c_l.npvalue())))
             print c_l.npvalue()
-            print "f_r"
+            print "f_r has {} nans".format(np.sum(np.isnan(f_r.npvalue())))
             print f_r.npvalue()
-            print "c_r"
+            print "c_r has {} nans".format(np.sum(np.isnan(c_r.npvalue())))
             print c_r.npvalue()
-            print "i"
+            print "i has {} nans".format(np.sum(np.isnan(i.npvalue())))
             print i.npvalue()
-            print "g"
+            print "g has {} nans".format(np.sum(np.isnan(g.npvalue())))
             print g.npvalue()
-            print "temp (before activation functions)"
+            print "temp (before activation functions) has {} nans".format(np.sum(np.isnan(temp.npvalue())))
             print temp.npvalue()
             exit(1)
         elif np.sum(np.isnan(h_p.npvalue())):
