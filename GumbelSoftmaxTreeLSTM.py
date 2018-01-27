@@ -278,6 +278,12 @@ class GumbelSoftmaxTreeLSTM:
             print o.npvalue()
             print "temp (before activation functions) has {} nans".format(np.sum(np.isnan(temp.npvalue())))
             print temp.npvalue()
+            tl = f_l.npvalue() * c_l.npvalue()
+            tr = f_r.npvalue() * c_r.npvalue()
+            tig = i.npvalue() * g.npvalue()
+            print "tl has {} nans, tr has {} nans, tig has {} nans".format(np.sum(np.isnan(tl)), np.sum(np.isnan(tr)),
+                                                                           np.sum(np.isnan(tig)))
+            print "their sum has {} nans".format(np.sum(np.isnan(tl + tr + tig)))
             exit(1)
 
         return [h_p, c_p]
