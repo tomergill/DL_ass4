@@ -152,6 +152,7 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
                 trainer.update()
             except RuntimeError:
                 # trainer.restart()
+                print "error at {}-{} inputs".format(j, j+batch_size)
                 continue
 
             if total % print_every == last:
