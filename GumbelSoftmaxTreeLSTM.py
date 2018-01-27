@@ -268,14 +268,14 @@ class GumbelSoftmaxTreeLSTM:
         y = dy.cdiv(y_temp, dy.sum_elems(y_temp))
         if np.sum(np.isnan(y.npvalue())) > 0:
             print "YYYYYYYYYYYYYYYYYYY"
+            print "y after"
+            print y.npvalue()
             print "u"
             print u.npvalue()
             print "g"
             print g.npvalue()
             print "y before cdiv"
             print y_temp.npvalue()
-            print "y after"
-            print y.npvalue()
             print "scores"
             print pis.npvalue()
             exit(1)
