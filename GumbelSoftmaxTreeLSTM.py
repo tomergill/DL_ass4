@@ -442,6 +442,7 @@ class GumbelSoftmaxTreeLSTM:
                     print m_r.npvalue()
                     print "mp"
                     print m_p.npvalue()
+                    exit(1)
 
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
                 new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights
