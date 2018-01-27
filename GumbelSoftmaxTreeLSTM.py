@@ -234,6 +234,12 @@ class GumbelSoftmaxTreeLSTM:
         hs = dy.concatenate([h_l, h_r])  # 2 * D_h by n - 1 matrix
         temp = W * hs + b  #
 
+        if np.sum(np.isnan(temp.npvalue())):
+            print "h_l with {} nans".format(np.sum(np.isnan(h_l.npvalue())))
+            print h_l.npvalue()
+            print "h_r with {} nans".format(np.sum(np.isnan(h_r.npvalue())))
+            print h_r.npvalue()
+
         # Generating i, f_l, f_r, o & g - D_h by n - 1 matrices
         d = self.__D_h
         i = dy.logistic(temp[0:d])  # sigmoid
@@ -245,35 +251,6 @@ class GumbelSoftmaxTreeLSTM:
         # computing parent data
         c_p = dy.cmult(f_l, c_l) + dy.cmult(f_r, c_r) + dy.cmult(i, g)
         h_p = dy.cmult(o, dy.tanh(c_p))
-
-        if np.sum(np.isnan(c_p.npvalue())) > 0:
-            print "ITS C_P with {} nans".format(np.sum(np.isnan(c_p.npvalue())))
-            print c_p.npvalue()
-            print "f_l has {} nans".format(np.sum(np.isnan(f_l.npvalue())))
-            print f_l.npvalue()
-            print "c_l has {} nans".format(np.sum(np.isnan(c_l.npvalue())))
-            print c_l.npvalue()
-            print "f_r has {} nans".format(np.sum(np.isnan(f_r.npvalue())))
-            print f_r.npvalue()
-            print "c_r has {} nans".format(np.sum(np.isnan(c_r.npvalue())))
-            print c_r.npvalue()
-            print "i has {} nans".format(np.sum(np.isnan(i.npvalue())))
-            print i.npvalue()
-            print "g has {} nans".format(np.sum(np.isnan(g.npvalue())))
-            print g.npvalue()
-            print "temp (before activation functions) has {} nans".format(np.sum(np.isnan(temp.npvalue())))
-            print temp.npvalue()
-            exit(1)
-        elif np.sum(np.isnan(h_p.npvalue())):
-            print "ITS HHHHHHHH"
-            print h_p.npvalue()
-            print "c_p"
-            print c_p.npvalue()
-            print "o"
-            print o.npvalue()
-            print "temp (before activation functions)"
-            print temp.npvalue()
-            exit(1)
 
         return [h_p, c_p]
 
@@ -386,6 +363,7 @@ class GumbelSoftmaxTreeLSTM:
         max_len = max(map(lambda hc: hc.dim()[0][1], layer))
         single_zreo = np.array([[0]])
         while max_len > 1:
+            print "\nMAX LEN IS {}]\n".format(max_len)  # todo remove this
             batch_parents = []
             batch_y = []
             batch_y_st = []
