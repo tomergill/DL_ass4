@@ -245,6 +245,36 @@ class GumbelSoftmaxTreeLSTM:
         # computing parent data
         c_p = dy.cmult(f_l, c_l) + dy.cmult(f_r, c_r) + dy.cmult(i, g)
         h_p = dy.cmult(o, dy.tanh(c_p))
+
+        if np.sum(np.isnan(c_p.npvalue())) > 0:
+            print "ITS C_P"
+            print c_p.npvalue()
+            print "f_l"
+            print f_l.npvalue()
+            print "c_l"
+            print c_l.npvalue()
+            print "f_r"
+            print f_r.npvalue()
+            print "c_r"
+            print c_r.npvalue()
+            print "i"
+            print i.npvalue()
+            print "g"
+            print g.npvalue()
+            print "temp (before activation functions)"
+            print temp.npvalue()
+            exit(1)
+        elif np.sum(np.isnan(h_p.npvalue())):
+            print "ITS HHHHHHHH"
+            print h_p.npvalue()
+            print "c_p"
+            print c_p.npvalue()
+            print "o"
+            print o.npvalue()
+            print "temp (before activation functions)"
+            print temp.npvalue()
+            exit(1)
+
         return [h_p, c_p]
 
     def __parents_of_layer(self, layer):
@@ -373,14 +403,6 @@ class GumbelSoftmaxTreeLSTM:
                 parents_scores_before = self.__parents_scores(parents)
                 score_sum = dy.sum_elems(parents_scores_before)
                 parents_scores = dy.cdiv(parents_scores_before, score_sum)
-
-                if np.sum(np.isnan(parents_scores_before.npvalue())):
-                    print "SCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSS"
-                    print "scores before div"
-                    print parents_scores_before.npvalue()
-                    print "parents"
-                    print parents.npvalue()
-                    exit(1)
 
                 if not test:
                     y = self.gumbel_softmax(parents_scores, self.__temperatue)
