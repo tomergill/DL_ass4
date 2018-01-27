@@ -265,7 +265,7 @@ class GumbelSoftmaxTreeLSTM:
         u = dy.random_uniform(pis.dim()[0], 0.0, 1.0)
         g = -dy.log(-dy.log(u))
         y_temp = dy.exp((dy.log(pis) + g) / temperatue)
-        y = dy.cdiv(y_temp, dy.sum_elems(y))
+        y = dy.cdiv(y_temp, dy.sum_elems(y_temp))
         if np.sum(np.isnan(y.npvalue())) > 0:
             print "YYYYYYYYYYYYYYYYYYY"
             print "u"
