@@ -257,6 +257,29 @@ class GumbelSoftmaxTreeLSTM:
         c_p = dy.cmult(f_l, c_l) + dy.cmult(f_r, c_r) + dy.cmult(i, g)
         h_p = dy.cmult(o, dy.tanh(c_p))
 
+        if np.sum(np.isnan(h_p.npvalue())) > 0 or np.sum(np.isnan(c_p.npvalue())) > 0:
+            print "h_p has {} nans".format(np.sum(np.isnan(h_p.npvalue())))
+            print h_p.npvalue()
+            print "c_p has {} nans".format(np.sum(np.isnan(c_p.npvalue())))
+            print c_p.npvalue()
+            print "f_l has {} nans".format(np.sum(np.isnan(f_l.npvalue())))
+            print f_l.npvalue()
+            print "c_l has {} nans".format(np.sum(np.isnan(c_l.npvalue())))
+            print c_l.npvalue()
+            print "f_r has {} nans".format(np.sum(np.isnan(f_r.npvalue())))
+            print f_r.npvalue()
+            print "c_r has {} nans".format(np.sum(np.isnan(c_r.npvalue())))
+            print c_r.npvalue()
+            print "i has {} nans".format(np.sum(np.isnan(i.npvalue())))
+            print i.npvalue()
+            print "g has {} nans".format(np.sum(np.isnan(g.npvalue())))
+            print g.npvalue()
+            print "o"
+            print o.npvalue()
+            print "temp (before activation functions) has {} nans".format(np.sum(np.isnan(temp.npvalue())))
+            print temp.npvalue()
+            exit(1)
+
         return [h_p, c_p]
 
     def __parents_of_layer(self, layer):
