@@ -264,8 +264,21 @@ class GumbelSoftmaxTreeLSTM:
         """
         u = dy.random_uniform(pis.dim()[0], 0.0, 1.0)
         g = -dy.log(-dy.log(u))
-        y = dy.exp((dy.log(pis) + g) / temperatue)
-        y = dy.cdiv(y, dy.sum_elems(y))
+        y_temp = dy.exp((dy.log(pis) + g) / temperatue)
+        y = dy.cdiv(y_temp, dy.sum_elems(y))
+        if np.sum(np.isnan(y.npvalue())) > 0:
+            print "YYYYYYYYYYYYYYYYYYY"
+            print "u"
+            print u.npvalue()
+            print "g"
+            print g.npvalue()
+            print "y before cdiv"
+            print y_temp.npvalue()
+            print "y after"
+            print y.npvalue()
+            print "scores"
+            print pis.npvalue()
+            exit(1)
         return y
 
     def __y_st_before_argmax(self, parents):
