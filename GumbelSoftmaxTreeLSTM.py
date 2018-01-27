@@ -266,19 +266,6 @@ class GumbelSoftmaxTreeLSTM:
         g = -dy.log(-dy.log(u))
         y_temp = dy.exp((dy.log(pis) + g) / temperatue)
         y = dy.cdiv(y_temp, dy.sum_elems(y_temp))
-        if np.sum(np.isnan(y.npvalue())) > 0:
-            print "YYYYYYYYYYYYYYYYYYY"
-            print "y after"
-            print y.npvalue()
-            print "u"
-            print u.npvalue()
-            print "g"
-            print g.npvalue()
-            print "y before cdiv"
-            print y_temp.npvalue()
-            print "scores"
-            print pis.npvalue()
-            exit(1)
         return y
 
     def __y_st_before_argmax(self, parents):
@@ -383,9 +370,19 @@ class GumbelSoftmaxTreeLSTM:
                 batch_parents.append(parents)
 
                 # creating v_1,...,v_M_t+1, Eq. (12) in the paper
-                parents_scores = self.__parents_scores(parents)
-                score_sum = dy.sum_elems(parents_scores)
-                parents_scores = dy.cdiv(parents_scores, score_sum)
+                parents_scores_before = self.__parents_scores(parents)
+                score_sum = dy.sum_elems(parents_scores_before)
+                parents_scores = dy.cdiv(parents_scores_before, score_sum)
+
+                if np.sum(np.isnan(parents_scores.npvalue())):
+                    print "SCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSS"
+                    print "scores before div"
+                    print parents_scores_before.npvalue()
+                    print "sum"
+                    print score_sum.value()
+                    print "scores after"
+                    print parents_scores.npvalue()
+                    exit(1)
 
                 if not test:
                     y = self.gumbel_softmax(parents_scores, self.__temperatue)
