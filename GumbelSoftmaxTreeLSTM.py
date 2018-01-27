@@ -216,7 +216,7 @@ class GumbelSoftmaxTreeLSTM:
         self.__W_comp = pc.add_parameters((5 * D_h, 2 * D_h))
         self.__b_comp = pc.add_parameters(5 * D_h)  # todo make sure it's 5 and not 2 like in the paper
 
-        self.__query_vec = pc.add_parameters((D_h, 1), init=dy.NormalInitializer(mean=0, var=0.01**2))
+        self.__query_vec = pc.add_parameters((D_h, 1))  #, init=dy.NormalInitializer(mean=0, var=0.01**2))
         self.__temperatue = temperatue
         pass
 
@@ -511,15 +511,15 @@ class SNLIGumbelSoftmaxTreeLSTM:
 
         # creates an mlp with n (n = {mlp_hidden_layers}) hidden layers and an input layer
         # input layer:
-        uni_init = dy.UniformInitializer(0.005)
-        self.__mlp = [(pc.add_parameters((mlp_hidden_layer_size, 4 * D_h), init=uni_init),
-                       pc.add_parameters(mlp_hidden_layer_size, init=uni_init))]
+        # uni_init = dy.UniformInitializer(0.005)
+        self.__mlp = [(pc.add_parameters((mlp_hidden_layer_size, 4 * D_h)),
+                       pc.add_parameters(mlp_hidden_layer_size))]
         # n - 1 hidden layers:
-        self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, mlp_hidden_layer_size), init=uni_init),
-                        pc.add_parameters(mlp_hidden_layer_size, init=uni_init)) for _ in xrange(mlp_hidden_layers - 1)]
+        self.__mlp += [(pc.add_parameters((mlp_hidden_layer_size, mlp_hidden_layer_size)),
+                        pc.add_parameters(mlp_hidden_layer_size)) for _ in xrange(mlp_hidden_layers - 1)]
         # last hidden layer to output:
-        self.__mlp += [(pc.add_parameters((D_c, mlp_hidden_layer_size), init=uni_init),
-                        pc.add_parameters(mlp_hidden_layer_size, init=uni_init))]
+        self.__mlp += [(pc.add_parameters((D_c, mlp_hidden_layer_size)),
+                        pc.add_parameters(mlp_hidden_layer_size))]
         self.__mlp_activation = dy.rectify  # ReLu
 
     def get_parameter_collection(self):
