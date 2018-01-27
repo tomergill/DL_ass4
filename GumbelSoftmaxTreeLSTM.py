@@ -239,6 +239,11 @@ class GumbelSoftmaxTreeLSTM:
             print h_l.npvalue()
             print "h_r with {} nans".format(np.sum(np.isnan(h_r.npvalue())))
             print h_r.npvalue()
+            print "W has {} nans".format(np.sum(np.isnan(W.npvalue())))
+            print W.npvalue()
+            print "b has {} nans".format(np.sum(np.isnan(b.npvalue())))
+            print b.npvalue()
+            exit(1)
 
         # Generating i, f_l, f_r, o & g - D_h by n - 1 matrices
         d = self.__D_h
