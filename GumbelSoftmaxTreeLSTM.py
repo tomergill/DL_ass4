@@ -374,14 +374,12 @@ class GumbelSoftmaxTreeLSTM:
                 score_sum = dy.sum_elems(parents_scores_before)
                 parents_scores = dy.cdiv(parents_scores_before, score_sum)
 
-                if np.sum(np.isnan(parents_scores.npvalue())):
+                if np.sum(np.isnan(parents_scores_before.npvalue())):
                     print "SCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSSSCORESSSS"
                     print "scores before div"
                     print parents_scores_before.npvalue()
-                    print "sum"
-                    print score_sum.value()
-                    print "scores after"
-                    print parents_scores.npvalue()
+                    print "parents"
+                    print parents.npvalue()
                     exit(1)
 
                 if not test:
