@@ -279,6 +279,12 @@ class GumbelSoftmaxTreeLSTM:
         hs = dy.select_rows(parents, range(self.__D_h))
         u = dy.random_uniform((1, hs.dim()[0][1]), 0, 1)
         g = -dy.log(-dy.log(u + epsilon) + epsilon)
+        if np.sum(np.isnan(g.npvalue())) > 0:  # todo remove this
+            print "GGGGGGGGG"
+            print "u:"
+            print u.npvalue()
+            print "G"
+            print g.npvalue()
         return dy.concatenate_cols([dy.dot_product(dy.select_cols(hs, [i]), q) for i in range(hs.dim()[0][1])]) + g
 
     def __parents_scores(self, parents):
@@ -418,6 +424,8 @@ class GumbelSoftmaxTreeLSTM:
                 if a+b > 0:
                     print "layer[{}]".format(i)
                     print layer[i].npvalue()
+                    print "parents[i]"
+                    print batch_parents[i].npvalue()
                     print "y_st_before"
                     print y_st_before
                     print "y"
