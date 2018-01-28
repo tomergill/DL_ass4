@@ -487,8 +487,10 @@ class GumbelSoftmaxTreeLSTM:
                 #     exit(1)
 
                 new_r = dy.cmult(M_l, dy.select_cols(layer[i], range(Mt - 1)))  # lefts
-                new_r += dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))  # rights
-                new_r += dy.cmult(M_p, parents)  # parents
+                cmult_l = dy.cmult(M_r, dy.select_cols(layer[i], range(1, Mt)))
+                new_r += cmult_l  # rights
+                cmult_p = dy.cmult(M_p, parents)
+                new_r += cmult_p  # parents
                 new_layer.append(new_r)  # the new representation of the sentence
 
             layer = new_layer
@@ -536,7 +538,7 @@ class SNLIGumbelSoftmaxTreeLSTM:
         return W * x + b
 
     def __call__(self, premises, hypotheses, test=False, use_dropout=False, dropout_prob=0.1):
-        dy.renew_cg()
+        dy.renew_cg(True, True)
 
         premises = [[dy.inputTensor(v) for v in premise] for premise in premises]
         hypotheses = [[dy.inputTensor(v) for v in hypothesis] for hypothesis in hypotheses]
