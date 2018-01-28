@@ -8,8 +8,15 @@ from random import shuffle
 
 UNKNOWN = "UNK"
 
+STUDENT = {"NAME": "Tomer Gill", "ID": "318459450", "U2 Username": "gilltom"}
+
 
 def read_glove(file_name):
+    """
+    Reads the words and their vector representations from a GloVe file.
+    :param file_name: Name of file to read
+    :return: A dictionary that maps a word to it's GloVe representation (numpy ndarray)
+    """
     W2NV = {}
     for line in file(file_name):
         line = line.split()
@@ -19,6 +26,12 @@ def read_glove(file_name):
 
 
 def read_snli_data_file(file_name):
+    """
+    Reads an SNLI json file for all teh examples there.
+    :param file_name: Name of json file to read.
+    :return: A list of all the sentences and their tags. Each item is a tuple holding the premise sentence, the
+    hypothesis sentence and the majority tag ("gold_label"), in this order.
+    """
     sentences_and_tags = []
     for line in file(file_name):
         js = json.loads(line[:-1])
@@ -30,12 +43,16 @@ def read_snli_data_file(file_name):
 
 def dataset_to_numerical_data(sentences_and_tags, W2NV, model):
     """
-
-    :param sentences_and_tags:
-    :param W2NV:
-    :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
-    :param model:
-    :return:
+    Turns a list of SNLI data to a list of respective tuples where the sentences are mapped to the vectors of the words,
+    and the tag (gold label) is it's index
+    The index of the gold label (entailment, neutral & contradiction) are determined by the model.
+    :param sentences_and_tags: List of tuples (premise, hypothesis, gold label)
+    :param W2NV: Maps words to a numpy vectors. If a word isn;t in W2NV, the representation of the global UNKNOWN
+    (unknown word token) is given instead.
+    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :param model: The model that will train / predict on those sentences. Used to get the indexes of the labels.
+    :return: A list of respective tuples: (A list of the numpy vectors of the words of the premise,
+    likewise for the hypothesis, the index of the gold_label)
     """
     T2I = {"entailment": model.ENTAILMENT, "neutral": model.NEUTRAL, "contradiction": model.CONTRADICTION}
     return [([W2NV[w] if w in W2NV else W2NV[UNKNOWN] for w in sen1],
@@ -45,11 +62,11 @@ def dataset_to_numerical_data(sentences_and_tags, W2NV, model):
 
 def accuracy_on(model, data):
     """
-
-    :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
-    :param model:
-    :param data:
-    :return:
+    Predicts on the data, compares it to the expected tag and returns the accuracy.
+    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :param model: Model for predicting.
+    :param data: A list of tuples: (list of numpy vectors (premise sentence), likewise (hypothesis sentence), tag)
+    :return: # of good predictions / len(data)
     """
     good = 0.0
     shuffle(data)
@@ -62,14 +79,18 @@ def accuracy_on(model, data):
 
 def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50000):
     """
-
+    Trains the model on the data and prints the number of epoch, teh avg. loss, total time of this epoch and the
+    accuracy on the dev set in a pretty table.
+    :param trainer: dynet.Trainer for updating the parameters bu the gradients.
     :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
-    :param model:
-    :param data:
-    :param dev_data:
-    :param epochs:
-    :param dropout_p:
-    :return:
+    :param model: Model to be trained.
+    :param data: Data to train on. A list of tuples: A list of tuples:
+    (list of numpy vectors (premise sentence), likewise (hypothesis sentence), tag)
+    :param dev_data: Like data, but will be used to calculate accuray and won't be used trained on.
+    :param epochs: How many times should the model train on the whole data set.
+    :param dropout_p: The probability of dropout. If <= 0 dropout isn't used.
+    :param print_every: Print a line in the table after this much samples trained. (Also calculates the dev accuracy).
+    :return: A list of lines of a csv file to write to a log file.
     """
     use_dropout = dropout_p > 0.0
     write_to_file = ["epoch,average_loss,total_time,dev_accuracy"]
@@ -96,12 +117,12 @@ def train_on(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=
 
 def accuracy_on_batch(model, data, batch_size=128):
     """
-
-    :type model: gst.SNLIGumbelSoftmaxTreeLSTM
-    :param model:
-    :param data:
-    :param batch_size:
-    :return:
+    Predicts on all the sentences in the data in mini-batches, compares it to the expected tag and returns the accuracy.
+    :param batch_size: The size of a mini batch to predict on.
+    :type model: SNLIGumbelSoftmaxTreeLSTM
+    :param model: Model for predicting.
+    :param data: A list of tuples: (list of numpy vectors (premise sentence), likewise (hypothesis sentence), tag)
+    :return: # of good predictions / len(data)
     """
     good = 0.0
     for i in xrange(0, len(data), batch_size):
@@ -116,17 +137,19 @@ def accuracy_on_batch(model, data, batch_size=128):
 
 def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0, print_every=50000, batch_size=128):
     """
-
-    :type model: gst.SNLIGumbelSoftmaxTreeLSTM
-    :param model:
-    :param trainer:
-    :param data:
-    :param dev_data:
-    :param epochs:
-    :param dropout_p:
-    :param print_every:
-    :param batch_size:
-    :return:
+    Trains the model on the data in mini-batches and prints the number of epoch, teh avg. loss, total time of this epoch
+     and the accuracy on the dev set in a pretty table.
+    :param batch_size: Size of a mini-batch (in samples).
+    :type model: SimpleSNLIGumbelSoftmaxTreeLSTM
+    :param model: Model to be trained.
+    :param trainer: dynet.Trainer for updating the parameters bu the gradients.
+    :param data: Data to train on. A list of tuples: A list of tuples:
+    (list of numpy vectors (premise sentence), likewise (hypothesis sentence), tag)
+    :param dev_data: Like data, but will be used to calculate accuray and won't be used trained on.
+    :param epochs: How many times should the model train on the whole data set.
+    :param dropout_p: The probability of dropout. If <= 0 dropout isn't used.
+    :param print_every: Print a line in the table after this much samples trained. (Also calculates the dev accuracy).
+    :return: A list of lines of a csv file to write to a log file.
     """
     last = print_every - 1
     use_dropout = dropout_p > 0.0
@@ -158,12 +181,21 @@ def train_on_with_batches(model, trainer, data, dev_data, epochs, dropout_p=0.0,
             if total % print_every == last:
                 acc = accuracy_on_batch(model, dev_data, batch_size)
                 write_to_file.append("{},{},{},{}".format(epochs, total_loss, time() - start_time, acc))
-                print "| {:>5} | {:12f} | {:8f} s | {:10f} % |".format(epochs, total_loss / total, time() - start_time, acc*100)
+                print "| {:>5} | {:12f} | {:8f} s | {:10f} % |".format(epochs, total_loss / total, time() - start_time,
+                                                                       acc*100)
                 print "+-------+--------------+------------+--------------+"
     return write_to_file
 
 
 def main():
+    """
+    Main funtion.
+    Arguments to the program can be: (order doesn't matter)
+        -lstm : Uses a LSTM RNN to encode the leaf nodes instead of a liniear layer.
+        -bilstm : Uses a biLSTM RNN to encode the leaf nodes instead of a liniear layer. (Doubles the size of data).
+        -simple : Uses the non-batched non-optimized version of the model.
+    In the end writes the data printed in a csv format to a file called "log.csv".
+    """
     files_name = "snli_1.0_{}.jsonl"
     use_leaf_lstm = False  # -lstm
     use_leaf_bilstm = False  # -bilstm
@@ -188,12 +220,12 @@ def main():
     
     start = time()
     train_set = read_snli_data_file(files_name.format("train"))
-    dev_set = read_snli_data_file(files_name.format("dev"))  # + read_snli_data_file(files_name.format("test"))
+    dev_set = read_snli_data_file(files_name.format("dev"))
     print "Finished reading SNLI data sets in {} seconds.".format(time() - start)
 
     # parameters
-    D_h = 300
-    D_c = 1024
+    D_h = 300  # size of inner representation
+    D_c = 1024  # size of layers in the final MLP
     mlp_hid_dim = D_c
     dropout_probability = 0.1
     epochs = 1
@@ -206,8 +238,7 @@ def main():
         model = gst.SNLIGumbelSoftmaxTreeLSTM(D_h, D_x, D_c, mlp_hid_dim, use_leaf_lstm=use_leaf_lstm,
                                               use_bilstm=use_leaf_bilstm)
     trainer = dy.AdamTrainer(model.get_parameter_collection())
-    # todo remove size limits
-    TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model)[:10000], dataset_to_numerical_data(dev_set, W2NV, model)[:1000]
+    TRAIN, DEV = dataset_to_numerical_data(train_set, W2NV, model), dataset_to_numerical_data(dev_set, W2NV, model)
 
     print "##################################################"
     print "#\tWords in GloVe vocab: {}".format(len(W2NV))
@@ -225,7 +256,7 @@ def main():
 
     if use_simple:
         write_to_file = train_on(model, trainer, TRAIN, DEV, epochs, dropout_p=dropout_probability)
-    else:  # todo remove print_every=1000
+    else:
         write_to_file = train_on_with_batches(model, trainer, TRAIN, DEV, epochs, dropout_probability,
                                               print_every=1000, batch_size=batch_size)
 
